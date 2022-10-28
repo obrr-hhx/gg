@@ -194,6 +194,50 @@ void do_cleanup( const Thunk & thunk )
   }
 }
 
+// get the dependecies from the storage backend and log the get numbers and the total dependencies size
+void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
+                         const Thunk & thunk,
+                         Optional<TimeLog> &timelog )
+{
+  try {
+    vector<storage::GetRequest> download_items;
+    bool executables = false;
+    off_t total_size = 0;
+    auto check_dep =
+      [&download_items, &executables, &total_size]( const Thunk::DataItem & item ) -> void
+      {
+        const auto target_path = gg::paths::blob( item.first );
+
+        if ( not roost::exists( target_path )
+             or roost::file_size( target_path ) != gg::hash::size( item.first ) ) {
+          if ( executables ) {
+            download_items.push_back( { item.first, target_path, 0544 } );
+          }
+          else {
+            download_items.push_back( { item.first, target_path, 0444 } );
+          }
+          total_size += gg::hash::size( item.first );
+        }
+      };
+
+    for_each( thunk.values().cbegin(), thunk.values().cend(),
+              check_dep );
+
+    executables = true;
+    for_each( thunk.executables().cbegin(), thunk.executables().cend(),
+              check_dep );
+
+    if ( download_items.size() > 0 ) {
+      timelog->add_point_rw("get_dependencies_num", download_items.size());
+      timelog->add_point_size("get_dependecies_size", total_size);
+      storage_backend->get( download_items );
+    }
+  }
+  catch ( const exception & ex ) {
+    throw_with_nested( FetchDependenciesError {} );
+  }
+}
+
 void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
                          const Thunk & thunk )
 {
@@ -233,6 +277,26 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
   }
 }
 
+void upload_output( unique_ptr<StorageBackend> & storage_backend,
+                    const vector<string> & output_hashes,
+                    Optional<TimeLog> &timelog )
+{
+  off_t total_size = 0;
+  try {
+    vector<storage::PutRequest> requests;
+    for ( const string & output_hash : output_hashes ) {
+      requests.push_back( { gg::paths::blob( output_hash ), output_hash,
+                            gg::hash::to_hex( output_hash ) } );
+      total_size += roost::file_size(gg::paths::blob( output_hash ));
+    }
+    timelog->add_point_rw("upload_output_num", requests.size());
+    timelog->add_point_size("upload_output_size", total_size);
+    storage_backend->put( requests );
+  }
+  catch ( const exception & ex ) {
+    throw_with_nested( UploadOutputError {} );
+  }
+}
 void upload_output( unique_ptr<StorageBackend> & storage_backend,
                     const vector<string> & output_hashes )
 {
@@ -341,7 +405,8 @@ int main( int argc, char * argv[] )
       if ( timelog.initialized() ) { timelog->add_point( "do_cleanup" ); }
 
       if ( get_dependencies ) {
-        fetch_dependencies( storage_backend, thunk );
+        if(timelog.initialized()) fetch_dependencies(storage_backend, thunk, timelog);
+        else fetch_dependencies( storage_backend, thunk );
       }
 
       if ( timelog.initialized() ) { timelog->add_point( "get_dependencies" ); }
@@ -351,7 +416,8 @@ int main( int argc, char * argv[] )
       if ( timelog.initialized() ) { timelog->add_point( "execute" ); }
 
       if ( put_output ) {
-        upload_output( storage_backend, output_hashes );
+        if(timelog.initialized()) upload_output( storage_backend, output_hashes, timelog);
+        else upload_output( storage_backend, output_hashes );
       }
 
       if ( timelog.initialized() ) { timelog->add_point( "upload_output" ); }

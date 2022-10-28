@@ -12,6 +12,16 @@ TimeLog::TimeLog()
     prev_( start_ )
 {}
 
+void TimeLog::add_point_size(const std::string & title, off_t size)
+{
+  points_size.emplace_back(title, size);
+}
+
+void TimeLog::add_point_rw( const std::string & title, std::size_t cnt)
+{
+  points_rw.emplace_back(title, cnt);
+}
+
 void TimeLog::add_point( const std::string & title )
 {
   auto now = duration_cast<milliseconds>( system_clock::now().time_since_epoch() );
@@ -27,6 +37,12 @@ string TimeLog::str() const
 
   for ( const auto & point : points_ ) {
     oss << point.first << " " << point.second.count() << endl;
+  }
+  for( const auto & point : points_rw ) {
+    oss << point.first << " " << point.second << endl;
+  }
+  for( const auto & point : points_size ) {
+    oss << point.first << " " << point.second << endl;
   }
 
   return oss.str();
