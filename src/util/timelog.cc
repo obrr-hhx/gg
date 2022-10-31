@@ -38,9 +38,13 @@ string TimeLog::str() const
   for ( const auto & point : points_ ) {
     oss << point.first << " " << point.second.count() << endl;
   }
+
+  oss << " Read/Write Numbers" << endl;
   for( const auto & point : points_rw ) {
     oss << point.first << " " << point.second << endl;
   }
+
+  oss << "Read/Write Sizes" << endl;
   for( const auto & point : points_size ) {
     oss << point.first << " " << point.second << endl;
   }

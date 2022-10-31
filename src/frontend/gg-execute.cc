@@ -229,8 +229,11 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
 
     if ( download_items.size() > 0 ) {
       timelog->add_point_rw("get_dependencies_num", download_items.size());
-      timelog->add_point_size("get_dependecies_size", total_size);
+      timelog->add_point_size("get_dependencies_size", total_size);
       storage_backend->get( download_items );
+    }else {
+      timelog->add_point_rw("get_dependencies_num", 0);
+      timelog->add_point_size("get_dependencies_size", 0);
     }
   }
   catch ( const exception & ex ) {
