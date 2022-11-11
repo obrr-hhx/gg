@@ -204,7 +204,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
     bool executables = false;
     off_t total_size = 0;
     auto check_dep =
-      [&download_items, &executables, &total_size]( const Thunk::DataItem & item ) -> void
+      [&download_items, &executables, &total_size, &timelog]( const Thunk::DataItem & item ) -> void
       {
         const auto target_path = gg::paths::blob( item.first );
 
@@ -217,6 +217,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
             download_items.push_back( { item.first, target_path, 0444 } );
           }
           total_size += gg::hash::size( item.first );
+          timelog->add_point_hash("get_hash", item.first);
         }
       };
 
@@ -291,6 +292,7 @@ void upload_output( unique_ptr<StorageBackend> & storage_backend,
       requests.push_back( { gg::paths::blob( output_hash ), output_hash,
                             gg::hash::to_hex( output_hash ) } );
       total_size += roost::file_size(gg::paths::blob( output_hash ));
+      timelog->add_point_hash("upload_hash", output_hash);
     }
     timelog->add_point_rw("upload_output_num", requests.size());
     timelog->add_point_size("upload_output_size", total_size);

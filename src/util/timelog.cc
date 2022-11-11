@@ -12,6 +12,11 @@ TimeLog::TimeLog()
     prev_( start_ )
 {}
 
+void TimeLog::add_point_hash( const std::string & title, std::string hash_value){
+  if(title == "get_hash")  get_hash.emplace_back(hash_value);
+  else upload_hash.emplace_back(hash_value);
+}
+
 void TimeLog::add_point_size(const std::string & title, off_t size)
 {
   points_size.emplace_back(title, size);
@@ -39,7 +44,7 @@ string TimeLog::str() const
     oss << point.first << " " << point.second.count() << endl;
   }
 
-  oss << " Read/Write Numbers" << endl;
+  oss << "Read/Write Numbers" << endl;
   for( const auto & point : points_rw ) {
     oss << point.first << " " << point.second << endl;
   }
@@ -47,6 +52,16 @@ string TimeLog::str() const
   oss << "Read/Write Sizes" << endl;
   for( const auto & point : points_size ) {
     oss << point.first << " " << point.second << endl;
+  }
+
+  oss << "Get Hash" << endl;
+  for(const auto &hash : get_hash) {
+    oss << "get_hash " << hash << endl;
+  }
+
+  oss << "Upload Hash" << endl;
+  for(const auto &hash : upload_hash) {
+    oss << "upload_hash " << hash << endl;
   }
 
   return oss.str();

@@ -21,7 +21,7 @@ gg force --jobs=$JOBS_COUNT --engine=lambda *.ivf
 
 printf "5. Build output.avi\n"
 ls *.ivf | grep -E '^[0-9]+\.ivf$' | while read each; do echo "file '$each'" >> mylist.txt; done
-ffmpeg -f concat -i mylist.txt -codec copy output.avi
+/home/handsonhuang/projects/FFmpeg/ffmpeg -f concat -i mylist.txt -codec copy output.avi
 
 printf "6. Result:\n"
 file output.avi

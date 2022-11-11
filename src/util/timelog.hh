@@ -16,11 +16,14 @@ private:
   std::vector<std::pair<std::string, std::chrono::milliseconds>> points_ {};
   std::vector<std::pair<std::string, std::size_t> > points_rw {};
   std::vector<std::pair<std::string, off_t> > points_size {};
+  std::vector<std::string> get_hash {};
+  std::vector<std::string> upload_hash {};
 public:
   TimeLog();
   void add_point( const std::string & title );
   void add_point_rw( const std::string & title, std::size_t cnt);
   void add_point_size( const std::string & title, off_t size);
+  void add_point_hash( const std::string & title, std::string hash_value);
   std::string str() const;
 };
 
