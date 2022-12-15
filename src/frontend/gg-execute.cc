@@ -217,7 +217,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
             download_items.push_back( { item.first, target_path, 0444 } );
           }
           total_size += gg::hash::size( item.first );
-          timelog->add_point_hash("get_hash", item.first);
+          timelog->add_point_hash("get_hash", item.first, gg::hash::size( item.first ));
         }
       };
 
@@ -292,7 +292,7 @@ void upload_output( unique_ptr<StorageBackend> & storage_backend,
       requests.push_back( { gg::paths::blob( output_hash ), output_hash,
                             gg::hash::to_hex( output_hash ) } );
       total_size += roost::file_size(gg::paths::blob( output_hash ));
-      timelog->add_point_hash("upload_hash", output_hash);
+      timelog->add_point_hash("upload_hash", output_hash, gg::hash::size(output_hash));
     }
     timelog->add_point_rw("upload_output_num", requests.size());
     timelog->add_point_size("upload_output_size", total_size);

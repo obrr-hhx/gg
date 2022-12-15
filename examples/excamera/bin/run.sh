@@ -17,7 +17,7 @@ printf "3. Execute 'make' to create thunks\n"
 gg-infer make -j$(nproc)
 
 printf "4. Run video processing jobs\n"
-gg force --jobs=$JOBS_COUNT --engine=lambda *.ivf
+time gg force --jobs=$JOBS_COUNT --engine=lambda *.ivf
 
 printf "5. Build output.avi\n"
 ls *.ivf | grep -E '^[0-9]+\.ivf$' | while read each; do echo "file '$each'" >> mylist.txt; done

@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <chrono>
 
 #include "execution/reductor.hh"
 #include "net/s3.hh"
@@ -322,7 +323,15 @@ int main( int argc, char * argv[] )
                         timeout_multiplier, status_bar };
 
     reductor.upload_dependencies();
-    vector<string> reduced_hashes = reductor.reduce();
+    // vector<string> reduced_hashes = reductor.reduce();
+    vector<string> reduced_hashes;
+    auto reduce_time = time_it<std::chrono::milliseconds>(
+      [&reduced_hashes, &reductor] ()
+      {
+        reduced_hashes = reductor.reduce();
+      }
+    );
+    std::cout<< "Running "<<reduce_time.count()<<" ms."<<std::endl;
     if ( not no_download and not reduced_hashes.empty() ) {
       reductor.download_targets( reduced_hashes );
 

@@ -1,18 +1,36 @@
-vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=1 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000000-vpxenc.ivf 00000000.y4m
-vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=1 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000001-vpxenc.ivf 00000001.y4m
-vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=1 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000002-vpxenc.ivf 00000002.y4m
-vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=1 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000003-vpxenc.ivf 00000003.y4m
-xc-terminate-chunk 00000003-vpxenc.ivf 00000003-0.ivf
-xc-terminate-chunk 00000000-vpxenc.ivf 00000000.ivf
-xc-terminate-chunk 00000002-vpxenc.ivf 00000002-0.ivf
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000000-vpxenc.ivf 00000000.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000001-vpxenc.ivf 00000001.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000002-vpxenc.ivf 00000002.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000003-vpxenc.ivf 00000003.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000004-vpxenc.ivf 00000004.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000005-vpxenc.ivf 00000005.y4m
+vpxenc --ivf --codec=vp8 --good --cpu-used=0 --end-usage=cq --min-q=0 --max-q=63 --cq-level=63 --buf-initial-sz=10000 --buf-optimal-sz=20000 --buf-sz=40000 --undershoot-pct=100 --passes=2 --auto-alt-ref=1 --threads=1 --token-parts=0 --tune=ssim --target-bitrate=4294967295 -o 00000006-vpxenc.ivf 00000006.y4m
 xc-terminate-chunk 00000001-vpxenc.ivf 00000001-0.ivf
-xc-dump 00000002-0.ivf 00000002-0.state
-xc-dump 00000000.ivf 00000000-0.state
+xc-terminate-chunk 00000002-vpxenc.ivf 00000002-0.ivf
+xc-terminate-chunk 00000003-vpxenc.ivf 00000003-0.ivf
+xc-terminate-chunk 00000004-vpxenc.ivf 00000004-0.ivf
+xc-terminate-chunk 00000005-vpxenc.ivf 00000005-0.ivf
+xc-terminate-chunk 00000000-vpxenc.ivf 00000000.ivf
+xc-terminate-chunk 00000006-vpxenc.ivf 00000006-0.ivf
 xc-dump 00000001-0.ivf 00000001-0.state
-xc-enc -W -w 0.75 -i y4m -o 00000002-1.ivf -r -I 00000001-0.state -p 00000002-0.ivf  00000002.y4m
+xc-dump 00000002-0.ivf 00000002-0.state
+xc-dump 00000003-0.ivf 00000003-0.state
+xc-dump 00000004-0.ivf 00000004-0.state
+xc-dump 00000005-0.ivf 00000005-0.state
+xc-dump 00000000.ivf 00000000-0.state
 xc-enc -W -w 0.75 -i y4m -o 00000003-1.ivf -r -I 00000002-0.state -p 00000003-0.ivf  00000003.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000004-1.ivf -r -I 00000003-0.state -p 00000004-0.ivf  00000004.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000005-1.ivf -r -I 00000004-0.state -p 00000005-0.ivf  00000005.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000006-1.ivf -r -I 00000005-0.state -p 00000006-0.ivf  00000006.y4m
 xc-enc -W -w 0.75 -i y4m -o 00000001.ivf -r -I 00000000-0.state -p 00000001-0.ivf -O 00000001-1.state 00000001.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000002-1.ivf -r -I 00000001-0.state -p 00000002-0.ivf  00000002.y4m
 xc-enc -W -w 0.75 -i y4m -o 00000001.ivf -r -I 00000000-0.state -p 00000001-0.ivf -O 00000001-1.state 00000001.y4m
 xc-enc -W -w 0.75 -i y4m -o 00000002.ivf -r -I 00000001-1.state -p 00000002-1.ivf -S 00000001-0.state -O 00000002-1.state 00000002.y4m
 xc-enc -W -w 0.75 -i y4m -o 00000002.ivf -r -I 00000001-1.state -p 00000002-1.ivf -S 00000001-0.state -O 00000002-1.state 00000002.y4m
-xc-enc -W -w 0.75 -i y4m -o 00000003.ivf -r -I 00000002-1.state -p 00000003-1.ivf -S 00000002-0.state  00000003.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000003.ivf -r -I 00000002-1.state -p 00000003-1.ivf -S 00000002-0.state -O 00000003-1.state 00000003.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000003.ivf -r -I 00000002-1.state -p 00000003-1.ivf -S 00000002-0.state -O 00000003-1.state 00000003.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000004.ivf -r -I 00000003-1.state -p 00000004-1.ivf -S 00000003-0.state -O 00000004-1.state 00000004.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000004.ivf -r -I 00000003-1.state -p 00000004-1.ivf -S 00000003-0.state -O 00000004-1.state 00000004.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000005.ivf -r -I 00000004-1.state -p 00000005-1.ivf -S 00000004-0.state -O 00000005-1.state 00000005.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000005.ivf -r -I 00000004-1.state -p 00000005-1.ivf -S 00000004-0.state -O 00000005-1.state 00000005.y4m
+xc-enc -W -w 0.75 -i y4m -o 00000006.ivf -r -I 00000005-1.state -p 00000006-1.ivf -S 00000005-0.state  00000006.y4m

@@ -92,7 +92,7 @@ Reductor::Reductor( const vector<string> & target_hashes,
     fallback_engines_( move( fallback_engines ) ),
     storage_backend_( move( storage_backend ) )
 {
-  cerr << "\u2192 Loading the thunks... ";
+  cout << "\u2192 Loading the thunks... ";
   auto graph_load_time = time_it<milliseconds>(
     [this] ()
     {
@@ -107,7 +107,7 @@ Reductor::Reductor( const vector<string> & target_hashes,
       }
     } ).count();
 
-  cerr << " done (" << graph_load_time << " ms)." << endl;
+  cout << " done (" << graph_load_time << " ms)." << endl;
 
   auto success_callback =
     [this] ( const string & old_hash, vector<ThunkOutput> && outputs, const float cost )
@@ -381,7 +381,7 @@ void Reductor::upload_dependencies() const
   }
 
   const string plural = upload_requests.size() == 1 ? "" : "s";
-  cerr << "\u2197 Uploading " << upload_requests.size() << " file" << plural
+  cout << "\u2197 Uploading " << upload_requests.size() << " file" << plural
        << " (" << format_bytes( total_size ) << ")... ";
 
   auto upload_time = time_it<milliseconds>(
@@ -390,12 +390,16 @@ void Reductor::upload_dependencies() const
       storage_backend_->put(
         upload_requests,
         [this] ( const storage::PutRequest & upload_request )
-        { storage_backend_->set_available( upload_request.object_key ); }
+        { storage_backend_->set_available( upload_request.object_key );}
       );
     }
   );
 
-  cerr << "done (" << upload_time.count() << " ms)." << endl;
+  cout << "done (" << upload_time.count() << " ms)." << endl;
+  cout << "Upload file hash" << endl;
+  for(auto req : upload_requests) {
+    cout<< req.object_key << endl;
+  }
 }
 
 void Reductor::download_targets( const vector<string> & hashes ) const
@@ -420,7 +424,7 @@ void Reductor::download_targets( const vector<string> & hashes ) const
   }
 
   const string plural = download_requests.size() == 1 ? "" : "s";
-  cerr << "\u2198 Downloading output file" << plural
+  cout << "\u2198 Downloading output file" << plural
        << " (" << format_bytes( total_size ) << ")... ";
   auto download_time = time_it<milliseconds>(
     [&download_requests, this]()
@@ -429,5 +433,5 @@ void Reductor::download_targets( const vector<string> & hashes ) const
     }
   );
 
-  cerr << "done (" << download_time.count() << " ms)." << endl;
+  cout << "done (" << download_time.count() << " ms)." << endl;
 }
