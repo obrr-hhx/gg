@@ -141,7 +141,7 @@ def main():
         install_lambda_package(function_file, function_name, args.role, args.region,
                                delete=args.delete)
         print("done.")
-        os.remove(function_file)
+        # os.remove(function_file)
 
 if __name__ == '__main__':
     main()

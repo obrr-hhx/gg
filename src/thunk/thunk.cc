@@ -166,6 +166,69 @@ Thunk::Thunk( const gg::protobuf::Thunk & thunk_proto )
   throw_if_error();
 }
 
+int Thunk::execute(Optional<TimeLog> &timelog) const
+{
+    if ( thunks_.size() != 0 ) {
+    throw runtime_error( "cannot execute thunk with unresolved dependencies" );
+  }
+
+  bool verbose = ( getenv( "GG_VERBOSE" ) != nullptr );
+
+  // preparing argv
+  vector<string> args = function_.args();
+  vector<string> envars { function_.envars() };
+
+  auto replace_data_placeholder =
+    []( string & str ) -> void
+    {
+      if ( regex_search( str, DATA_PLACEHOLDER_REGEX ) ) {
+        string new_path = regex_replace( str, DATA_PLACEHOLDER_REGEX, gg::paths::blob( "$1" ).string() );
+        swap( str, new_path );
+      }
+    };
+
+  /* do we need to replace a hash placeholder with the actual path? */
+  for ( string & arg : args ) {
+    replace_data_placeholder( arg );
+  }
+
+  for ( string & envar : envars ) {
+    replace_data_placeholder( envar );
+  }
+
+  const roost::path thunk_path = gg::paths::blob( hash() );
+
+  // preparing envp
+  envars.insert( envars.end(), {
+    "__GG_THUNK_PATH__=" + thunk_path.string(),
+    "__GG_DIR__=" + gg::paths::blobs().string(),
+    "__GG_ENABLED__=1",
+  } );
+
+  if ( verbose ) {
+    envars.emplace_back( "__GG_VERBOSE__=1" );
+  }
+
+  int retval;
+  
+  timelog->add_execute(function_);
+
+  if ( verbose ) {
+    string exec_string = "+ exec(" + hash() + ") {"
+                       + roost::rbasename( function_.args().front() ).string()
+                       + "}\n";
+
+    cerr << exec_string;
+  }
+
+  if ( ( retval = ezexec( gg::paths::blob( function_.hash() ).string(),
+                          args, envars ) ) < 0 ) {
+    throw runtime_error( "execvpe failed" );
+  }
+
+  return retval;
+}
+
 int Thunk::execute() const
 {
   if ( thunks_.size() != 0 ) {
@@ -212,6 +275,7 @@ int Thunk::execute() const
   int retval;
 
   if ( verbose ) {
+    // printf()
     string exec_string = "+ exec(" + hash() + ") {"
                        + roost::rbasename( function_.args().front() ).string()
                        + "}\n";

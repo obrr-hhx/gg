@@ -35,6 +35,14 @@ void TimeLog::add_point( const std::string & title )
   prev_ = now;
 }
 
+void TimeLog::add_execute(gg::thunk::Function &function)
+{
+  // std::string execute;
+  for(auto arg:function.args()){
+    execute_info += arg;
+  }
+}
+
 string TimeLog::str() const
 {
   ostringstream oss;
@@ -43,6 +51,8 @@ string TimeLog::str() const
   for ( const auto & point : points_ ) {
     oss << point.first << " " << point.second.count() << endl;
   }
+
+  oss << "Execute Command: " << execute_info << endl;
 
   oss << "Read/Write Numbers" << endl;
   for( const auto & point : points_rw ) {

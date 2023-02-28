@@ -34,7 +34,7 @@ const bool sandboxed = ( getenv( "GG_SANDBOXED" ) != NULL );
 const string temp_dir_template = "/tmp/thunk-execute";
 const string temp_file_template = "/tmp/thunk-file";
 
-vector<string> execute_thunk( const Thunk & original_thunk )
+vector<string> execute_thunk( const Thunk & original_thunk , Optional<TimeLog> &timelog)
 {
   Thunk thunk = original_thunk;
 
@@ -84,7 +84,7 @@ vector<string> execute_thunk( const Thunk & original_thunk )
       thunk.hash(),
       [thunk, &exec_dir_path]() {
         CheckSystemCall( "chdir", chdir( exec_dir_path.string().c_str() ) );
-        return thunk.execute();
+        return thunk.execute(timelog);
       }
     };
 
@@ -416,7 +416,7 @@ int main( int argc, char * argv[] )
 
       if ( timelog.initialized() ) { timelog->add_point( "get_dependencies" ); }
 
-      vector<string> output_hashes = execute_thunk( thunk );
+      vector<string> output_hashes = execute_thunk( thunk, timelog );
 
       if ( timelog.initialized() ) { timelog->add_point( "execute" ); }
 

@@ -32,6 +32,7 @@ class Thunk:
         self.wrote_time = []
         self.read_time = []
         self.lifetime = 0
+        self.size = 0
         self.read_lambda = []
         self.write_lambda = []
     def compute_lifetime(self):
@@ -88,10 +89,11 @@ def generate_thunk():
     global thunk_list
     for lmbd in lambda_list:
         for h in lmbd.read_hash:
-            t , thunk = check_in_hashList(h)
+            t , thunk = check_in_hashList(h[0])
             if not t:
                 thunk = Thunk()
-                thunk.hash_value = h
+                thunk.hash_value = h[0]
+                thunk.size = h[1]
                 thunk.read_time.append(compute_lambda_read_time(lmbd))
                 thunk.read_lambda.append(lmbd)
                 thunk_list.append(thunk)
@@ -99,10 +101,11 @@ def generate_thunk():
                 thunk.read_time.append(compute_lambda_read_time(lmbd))
                 thunk.read_lambda.append(lmbd)
         for h in lmbd.write_hash:
-            t , thunk = check_in_hashList(h)
+            t , thunk = check_in_hashList(h[0])
             if not t:
                 thunk = Thunk()
-                thunk.hash_value = h
+                thunk.hash_value = h[0]
+                thunk.size = h[1]
                 thunk.wrote_time.append(compute_lambda_write_time(lmbd))
                 thunk.write_lambda.append(lmbd)
                 thunk_list.append(thunk)
@@ -135,10 +138,10 @@ def create_lambda(timelog):
         elif log[0] == 'upload_output_size':
             lmbd.write_size = log[1]
         elif log[0] == 'get_hash':
-            lmbd.read_hash.append(log[1])
+            lmbd.read_hash.append([log[1], log[2]])
             # lmbd.get_thunk.append(log[1])
         elif log[0] == 'upload_hash':
-            lmbd.write_hash.append(log[1])
+            lmbd.write_hash.append([log[1], log[2]])
             # lmbd.upload_thunk.append(log[1])       
     global lambda_list
     lambda_list.append(lmbd)
@@ -188,7 +191,7 @@ def plot_dependency_graph():
         if len(node.children_lambda) != 0:
             for chd_node in node.children_lambda:
                 traverse_create(g, node, chd_node)
-    
+    g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='png')
     g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='svg')
 
 
@@ -227,7 +230,8 @@ def plot_cdf(data_log):
         plt.savefig(path)
 
 def create_cdf(timelog):
-    data_log = {'read_num':[], 'write_num':[], 'read_size':[], 'write_size':[]}
+    global thunk_list
+    data_log = {'read_num':[], 'write_num':[], 'read_size':[], 'write_size':[], 'thunk_size':[]}
     for log in timelog:
         if log[0] == 'get_dependencies_num':
             # read_num.append(log[1])
@@ -241,6 +245,8 @@ def create_cdf(timelog):
         elif log[0] == 'upload_output_size':
             # write_size.append(log[1])
             data_log['write_size'].append(log[1])
+    for thunk in thunk_list:
+        data_log['thunk_size'].append(thunk.size)
     plot_cdf(data_log)
 
 
@@ -252,8 +258,8 @@ def create_cdf(timelog):
 '''
 def create_thunk_csv():
     global thunk_list
-    headers_read = ['hash', 'read_lambda']
-    headers_write = ['hash', 'write_lambda']
+    headers_read = ['hash', 'hash_size', 'read_lambda']
+    headers_write = ['hash', 'hash_size', 'write_lambda']
     headers_life = ['hash', 'read_num', 'write_num','lifetime']
     # create the hash-read
     with open('/home/handsonhuang/gg/temp/hash_read.csv', 'w', encoding='utf8', newline='') as f:
@@ -263,6 +269,7 @@ def create_thunk_csv():
             if len(thunk.read_lambda) != 0 and len(thunk.write_lambda) != 0:
                 row = []
                 row.append(thunk.hash_value)
+                row.append(thunk.size)
                 for lmbda in thunk.read_lambda:
                     row.append(str(lmbda.id_))
                 rows.append(tuple(row))
@@ -282,6 +289,7 @@ def create_thunk_csv():
                 for lmbda in thunk.write_lambda:
                     row = []
                     row.append(thunk.hash_value)
+                    row.append(thunk.size)
                     row.append(str(lmbda.id_))
                     rows.append(tuple(row))
             # else:
@@ -353,7 +361,7 @@ for logfile in os.listdir(datadir):
                 if line.split()[1] != 'Numbers' and line.split()[1] != 'Sizes' and line.split()[1] != 'Hash':
                     # print(line.split())
                     if line.split()[0] == 'get_hash' or line.split()[0] == 'upload_hash':
-                        timelog += [(line.split()[0], (line.split()[1]))]
+                        timelog += [(line.split()[0], (line.split()[1]), int(line.split()[2]))]
                     else:
                         timelog += [(line.split()[0], int(line.split()[1]))]
         create_lambda(timelog)
@@ -364,24 +372,26 @@ for logfile in os.listdir(datadir):
         if not headers:
             headers = [x[0] for x in timelog]
 
-
-create_cdf(myLog)
-
-lambda_list.sort(key=lambda x: x.id_)
-min_time = lambda_list[0].id_
-for l in lambda_list:
-    l.id_ = l.id_ - min_time
-
-create_runtime_csv()
-classfy_dependency()
-plot_dependency_graph()
-
+# lambda_list.sort(key=lambda x: x.id_)
+# min_time = lambda_list[0].id_
+# for l in lambda_list:
+#     l.id_ = l.id_ - min_time
 generate_thunk()
 for thunk in thunk_list:
     thunk.compute_lifetime()
 
-create_thunk_csv()
+create_cdf(myLog)
+create_runtime_csv()
+classfy_dependency()
 
+for lmbd in lambda_list:
+    if lmbd.id_ == 567:
+        print(lmbd.read_hash)
+        print(lmbd.write_hash)
+
+
+plot_dependency_graph()
+create_thunk_csv()
 
 data_points.sort(key=lambda x: x[0])
 

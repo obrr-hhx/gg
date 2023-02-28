@@ -20,6 +20,9 @@ if not os.environ.get('GG_DIR'):
 if not os.environ.get('GG_CACHE_DIR'):
     os.environ['GG_CACHE_DIR'] = "/tmp/_gg/_cache"
 
+if not os.environ.get('GG_VERBOSE'):
+    os.environ['GG_VERBOSE'] = "1"
+
 # Now we can import gg stuff...
 from ggpaths import GGPaths, GGCache, make_gg_dirs
 from common import is_executable, make_executable, run_command
@@ -67,6 +70,7 @@ def handler(event, context):
                 tried_once = True
                 os.system("rm -rf '{}'".format(GGPaths.blobs))
                 os.system("rm -rf '{}'".format(GGPaths.reductions))
+                os.system("rm -rf /tmp/timelog")
                 make_gg_dirs()
                 continue
             else:
@@ -118,6 +122,6 @@ def handler(event, context):
 
     return {
         'returnCode': 0,
-        'stdout': '',
+        'stdout': stdout,
         'executedThunks': executed_thunks
     }

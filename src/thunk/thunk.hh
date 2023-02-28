@@ -20,6 +20,7 @@
 #include "sandbox/sandbox.hh"
 #include "util/optional.hh"
 #include "util/path.hh"
+#include "util/timelog.hh"
 
 namespace gg {
 
@@ -131,6 +132,7 @@ namespace gg {
       Thunk( const gg::protobuf::Thunk & thunk_proto );
 
       int execute() const;
+      int execute(Optional<TimeLog> &timelog) const;
 
       static std::string execution_payload( const Thunk & thunk );
       static std::string execution_payload( const std::vector<Thunk> & thunks );

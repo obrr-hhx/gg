@@ -396,10 +396,10 @@ void Reductor::upload_dependencies() const
   );
 
   cout << "done (" << upload_time.count() << " ms)." << endl;
-  cout << "Upload file hash" << endl;
-  for(auto req : upload_requests) {
-    cout<< req.object_key << endl;
-  }
+  // cout << "Upload file hash" << endl;
+  // for(auto req : upload_requests) {
+  //   cout<< req.object_key << endl;
+  // }
 }
 
 void Reductor::download_targets( const vector<string> & hashes ) const
