@@ -132,7 +132,7 @@ namespace gg {
       Thunk( const gg::protobuf::Thunk & thunk_proto );
 
       int execute() const;
-      int execute(Optional<TimeLog> &timelog) const;
+      // int execute(Optional<TimeLog> &timelog) const;
 
       static std::string execution_payload( const Thunk & thunk );
       static std::string execution_payload( const std::vector<Thunk> & thunks );

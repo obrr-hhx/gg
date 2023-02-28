@@ -80,11 +80,13 @@ vector<string> execute_thunk( const Thunk & original_thunk , Optional<TimeLog> &
 
   // EXECUTING THE THUNK
   if ( not sandboxed ) {
+    std::vector<std::string> execute = thunk.function().args();
+    timelog->add_execute(execute);
     ChildProcess process {
       thunk.hash(),
       [thunk, &exec_dir_path, &timelog]() {
         CheckSystemCall( "chdir", chdir( exec_dir_path.string().c_str() ) );
-        return thunk.execute(timelog);
+        return thunk.execute();
       }
     };
 
@@ -103,7 +105,8 @@ vector<string> execute_thunk( const Thunk & original_thunk , Optional<TimeLog> &
   }
   else {
     auto allowed_files = thunk.get_allowed_files();
-
+    std::vector<std::string> execution = thunk.function().args();
+    timelog->add_execute(execution);
     SandboxedProcess process {
       "execute(" + thunk.hash().substr( 0, 5 ) + ")",
       exec_dir_path.string(),
