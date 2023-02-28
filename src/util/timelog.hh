@@ -8,8 +8,6 @@
 #include <string>
 #include <ctime>
 
-#include "thunk/thunk.hh"
-
 class TimeLog
 {
 private:
@@ -20,14 +18,14 @@ private:
   std::vector<std::pair<std::string, off_t> > points_size {};
   std::vector<std::pair<std::string, off_t> > get_hash {};
   std::vector<std::pair<std::string, off_t> > upload_hash {};
-  std::string execute_info;
+  std::string execute_info {};
 public:
   TimeLog();
   void add_point( const std::string & title );
   void add_point_rw( const std::string & title, std::size_t cnt);
   void add_point_size( const std::string & title, off_t size);
   void add_point_hash( const std::string & title, std::string hash_value, off_t size);
-  void add_execute(gg::thunk::Function &function);
+  void add_execute(std::vector<std::string> &args);
   std::string str() const;
 };
 

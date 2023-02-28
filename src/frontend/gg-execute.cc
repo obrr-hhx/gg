@@ -82,7 +82,7 @@ vector<string> execute_thunk( const Thunk & original_thunk , Optional<TimeLog> &
   if ( not sandboxed ) {
     ChildProcess process {
       thunk.hash(),
-      [thunk, &exec_dir_path]() {
+      [thunk, &exec_dir_path, &timelog]() {
         CheckSystemCall( "chdir", chdir( exec_dir_path.string().c_str() ) );
         return thunk.execute(timelog);
       }

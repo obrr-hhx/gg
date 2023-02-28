@@ -210,8 +210,8 @@ int Thunk::execute(Optional<TimeLog> &timelog) const
   }
 
   int retval;
-  
-  timelog->add_execute(function_);
+
+  timelog->add_execute(args);
 
   if ( verbose ) {
     string exec_string = "+ exec(" + hash() + ") {"

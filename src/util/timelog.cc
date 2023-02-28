@@ -35,12 +35,9 @@ void TimeLog::add_point( const std::string & title )
   prev_ = now;
 }
 
-void TimeLog::add_execute(gg::thunk::Function &function)
+void TimeLog::add_execute(std::vector<std::string> &args)
 {
-  // std::string execute;
-  for(auto arg:function.args()){
-    execute_info += arg;
-  }
+  for(auto arg:args) execute_info += arg;
 }
 
 string TimeLog::str() const
