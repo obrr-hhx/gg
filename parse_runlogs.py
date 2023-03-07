@@ -11,6 +11,7 @@ import seaborn as sns
 import pandas as pd
 from graphviz import Digraph
 import csv
+import shutil
 
 datadir = sys.argv[1]
 
@@ -40,13 +41,6 @@ class Thunk:
         tmp_read = self.read_time
         tmp_write.sort()
         tmp_read.sort(reverse=True)
-        if self.hash_value == 'V5pB2cDVLOFGkh8oyHix1eURquEyL.xm12.JFisT.4kI000009f2':
-            print(tmp_read)
-            print("####################read lambda####################")
-            lmbd = self.read_lambda[0]
-            print("lambda id: ", lmbd.id_)
-            print("lambd read thunk time: ", lmbd.read_thunk_time)
-            print(tmp_write)
         if len(tmp_write) == 0:
             self.lifetime = tmp_read[0]
         elif len(tmp_read) != 0 and len(tmp_write) != 0:
@@ -54,6 +48,7 @@ class Thunk:
 
 class Lambda:
     def __init__(self) -> None:
+        self.hash = ''
         self.id_ = 0
         self.read_thunk_time = 0
         self.do_clean_time = 0
@@ -64,6 +59,7 @@ class Lambda:
         self.read_size = 0
         self.write_num = 0
         self.write_size = 0
+        self.execute = ''
         self.read_hash = []
         self.write_hash = []
         self.parent_lambda = []
@@ -77,10 +73,13 @@ def check_in_hashList(hash_value):
     return False, None
 
 def compute_lambda_read_time(lambda_entity):
+    # convert the last 5 character of id to int
+    # id_int = int(lambda_entity.id_[-5:])
     read_time = lambda_entity.id_ + lambda_entity.read_thunk_time + lambda_entity.do_clean_time + lambda_entity.get_dependencies_time
     return read_time
 
 def compute_lambda_write_time(lmbd):
+    # id_int = int(lmbd.id_[-5:])
     write_time = lmbd.id_ + lmbd.read_thunk_time + lmbd.do_clean_time + lmbd.get_dependencies_time + lmbd.execute_time + lmbd.upload_time
     return write_time
 
@@ -119,6 +118,8 @@ def create_lambda(timelog):
     for log in timelog:
         if log[0] == 'started':
             lmbd.id_ = log[1]
+        elif log[0] == 'hash':
+            lmbd.hash = log[1]
         elif log[0] == 'read_thunk':
             lmbd.read_thunk_time = log[1]
         elif log[0] == 'do_cleanup':
@@ -127,6 +128,8 @@ def create_lambda(timelog):
             lmbd.get_dependencies_time = log[1]
         elif log[0] == 'execute':
             lmbd.execute_time = log[1]
+        elif log[0] == 'command':
+            lmbd.execute = log[1]
         elif log[0] == 'upload_output':
             lmbd.upload_time = log[1]
         elif log[0] == 'get_dependencies_num':
@@ -149,35 +152,104 @@ def create_lambda(timelog):
 '''
     Generate the dependency graphy, DAG
 '''
-def classfy_dependency():
-    
+# classify_dependency() loops through lambda_list and calls classify_write_read for each lambda in lambda_list 
+# in order to classify dependencies between the lambdas. 
+# classify_write_read() then checks if there are any hashes in write_hash that are also in read_hash. 
+# If there is a match, then the child_lambda and parent_lambda lists are updated to reflect the dependency.
+def classify_dependency():
     global lambda_list
-    for current_lmbd in lambda_list:
-        for lmbd_x in lambda_list:
-            if(current_lmbd != lmbd_x):
-                for hash_v in current_lmbd.write_hash:
-                    if hash_v in lmbd_x.read_hash:
-                        current_lmbd.children_lambda.append(lmbd_x)
-                        lmbd_x.parent_lambda.append(current_lmbd)
+    for current_lambda in lambda_list:
+        for lambda_x in lambda_list:
+            if(current_lambda != lambda_x):
+                classify_write_read(current_lambda, lambda_x)
+
+def classify_write_read(current_lambda, lambda_x):
+    for hash_v in current_lambda.write_hash:
+        if hash_v in lambda_x.read_hash:
+            current_lambda.children_lambda.append(lambda_x)
+            lambda_x.parent_lambda.append(current_lambda)
+
+# def classify_dependency():
+#     global lambda_list
+#     for current_lambda in lambda_list:
+#         for lambda_x in lambda_list:
+#             if(current_lambda != lambda_x):
+#                 for hash_v in current_lambda.write_hash:
+#                     if hash_v in lambda_x.read_hash:
+#                         current_lambda.children_lambda.append(lambda_x)
+#                         lambda_x.parent_lambda.append(current_lambda)
 
 def traverse_create(g, parent, child):
     label = format_label(child)
-    g.node(str(child.id_), label)
-    g.edge(str(parent.id_), str(child.id_))
+    g.node(child.hash, label)
+    g.edge(parent.hash, child.hash)
     if len(child.children_lambda) != 0:
         for chd in child.children_lambda:
             traverse_create(g, child, chd)
 
 def format_label(node) -> str:
-    lb_id = 'id: ' + str(node.id_) + '\n'
-    lb_read_num = 'read num: ' + str(node.read_num) + '\n'
-    lb_read_size = 'read size: ' + str(node.read_size) + ' bytes' + '\n'
-    lb_write_num = 'write num: ' + str(node.write_num) + '\n'
-    lb_write_size = 'write size: ' + str(node.write_size) + ' bytes'
-    label = lb_id+lb_read_num+lb_read_size+lb_write_num+lb_write_size
+    lb_id = 'id: ' + node.hash + '\n'
+    # if the command is too long, then truncate it to 100 characters
+    if len(node.execute) > 100:
+        node.execute = node.execute[:100]
+    label = lb_id + 'command: ' + node.execute + '\n'
+    label += 'read num: ' + str(node.read_num) + '\n'
+    label += 'read size: ' + str(node.read_size) + ' bytes' + '\n'
+    label += 'write num: ' + str(node.write_num) + '\n'
+    label += 'write size: ' + str(node.write_size) + ' bytes'
     return label
 
 def plot_dependency_graph():
+    # plot the dependency graph of the lambda function
+    global lambda_list
+    root_lambda = []
+    g = Digraph("Dependency",strict=True)
+    # find the root lambda
+    for lmbd in lambda_list:
+        if len(lmbd.parent_lambda) == 0:
+            root_lambda.append(lmbd)
+    # add root lambda node
+    for node in root_lambda:
+        label = format_label(node)
+        g.node(node.hash,label=label)
+    # add child lambda node
+    for node in root_lambda:
+        if len(node.children_lambda) != 0:
+            for chd_node in node.children_lambda:
+                traverse_create(g, node, chd_node)
+    # render the graph
+    g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='png')
+    g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='svg')
+
+# traverse the dependency graph without command label
+def traverse_create_without_command(g, parent, child):
+    label = format_label_without_command(child)
+    g.node(child.hash, label)
+    g.edge(parent.hash, child.hash)
+    if len(child.children_lambda) != 0:
+        for chd in child.children_lambda:
+            traverse_create_without_command(g, child, chd)
+
+# format the label without command
+def format_label_without_command(node) -> str:
+    """Create a string to be used as node label, based on the node's
+    statistics."""
+    # First, create a list of the statistics we want to display.
+    # Each list item is a string that will be concatenated to the final
+    # label.
+    stats = [
+        'id: ' + node.hash+'\n',
+        'read num: ' + str(node.read_num)+'\n',
+        'read size: ' + str(node.read_size) + ' bytes'+ '\n',
+        'write num: ' + str(node.write_num)+'\n',
+        'write size: ' + str(node.write_size) + ' bytes'
+    ]
+    # Join the list items with newlines.
+    label = ''.join(stats)
+    return label
+
+#  plot the dependency graph without command label
+def plot_dependency_graph_without_command():
     global lambda_list
     root_lambda = []
     g = Digraph("Dependency",strict=True)
@@ -185,15 +257,14 @@ def plot_dependency_graph():
         if len(lmbd.parent_lambda) == 0:
             root_lambda.append(lmbd)
     for node in root_lambda:
-        label = format_label(node)
-        g.node(str(node.id_),label=label)
+        label = format_label_without_command(node)
+        g.node(node.hash, label=label)
     for node in root_lambda:
         if len(node.children_lambda) != 0:
             for chd_node in node.children_lambda:
-                traverse_create(g, node, chd_node)
-    g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='png')
-    g.render(datadir.split('/')[5]+'_dep.gv', directory="/home/handsonhuang/gg/temp/",format='svg')
-
+                traverse_create_without_command(g, node, chd_node)
+    g.render(datadir.split('/')[5]+'_dep_without_command.gv', directory="/home/handsonhuang/gg/temp/",format='png')
+    g.render(datadir.split('/')[5]+'_dep_without_command.gv', directory="/home/handsonhuang/gg/temp/",format='svg')
 
 
 '''
@@ -271,7 +342,7 @@ def create_thunk_csv():
                 row.append(thunk.hash_value)
                 row.append(thunk.size)
                 for lmbda in thunk.read_lambda:
-                    row.append(str(lmbda.id_))
+                    row.append(str(lmbda.hash))
                 rows.append(tuple(row))
             # else:
             #     row = []
@@ -290,7 +361,7 @@ def create_thunk_csv():
                     row = []
                     row.append(thunk.hash_value)
                     row.append(thunk.size)
-                    row.append(str(lmbda.id_))
+                    row.append(str(lmbda.hash))
                     rows.append(tuple(row))
             # else:
             #     row = []
@@ -333,7 +404,7 @@ def create_runtime_csv():
         for lmbd in lambda_list:
             total = lmbd.read_thunk_time + lmbd.do_clean_time + lmbd.get_dependencies_time + lmbd.execute_time + lmbd.upload_time
             row = []
-            row.append(lmbd.id_)
+            row.append(lmbd.hash)
             row.append(lmbd.read_thunk_time)
             row.append(lmbd.do_clean_time)
             row.append(lmbd.get_dependencies_time)
@@ -346,7 +417,7 @@ def create_runtime_csv():
 
 
 '''
-    parse the logfile in given path
+    Parse the logfile in given path
 '''
 for logfile in os.listdir(datadir):
     path = os.path.join(datadir, logfile)
@@ -356,12 +427,15 @@ for logfile in os.listdir(datadir):
 
         for line in log:
             if not timelog:
-                timelog += [('started', int(line))]
+                timelog += [('hash', (logfile))]
+                timelog += [('started', int(line))] # add the start time and identifier the log
             else:
                 if line.split()[1] != 'Numbers' and line.split()[1] != 'Sizes' and line.split()[1] != 'Hash':
                     # print(line.split())
                     if line.split()[0] == 'get_hash' or line.split()[0] == 'upload_hash':
                         timelog += [(line.split()[0], (line.split()[1]), int(line.split()[2]))]
+                    elif line.split()[0] == 'Execute':
+                        timelog += [('command', line.split()[2])]
                     else:
                         timelog += [(line.split()[0], int(line.split()[1]))]
         create_lambda(timelog)
@@ -372,34 +446,47 @@ for logfile in os.listdir(datadir):
         if not headers:
             headers = [x[0] for x in timelog]
 
-# lambda_list.sort(key=lambda x: x.id_)
-# min_time = lambda_list[0].id_
-# for l in lambda_list:
-#     l.id_ = l.id_ - min_time
+
+# make directory empty before running
+def empty_dir():
+    if os.path.exists('/home/handsonhuang/gg/temp'):
+        shutil.rmtree('/home/handsonhuang/gg/temp')
+    os.mkdir('/home/handsonhuang/gg/temp')
+
+# sort the lambda list by id and reset the id
+def sort_lambda():
+    global lambda_list
+    lambda_list.sort(key=lambda x: x.id_)
+    min_time = lambda_list[0].id_
+    for l in lambda_list:
+        l.id_ = l.id_ - min_time
+
+
+
+empty_dir()
+# sort_lambda()
+
+# generate the thunk list
 generate_thunk()
+
 for thunk in thunk_list:
     thunk.compute_lifetime()
 
 create_cdf(myLog)
 create_runtime_csv()
-classfy_dependency()
-
-for lmbd in lambda_list:
-    if lmbd.id_ == 567:
-        print(lmbd.read_hash)
-        print(lmbd.write_hash)
-
+classify_dependency()
 
 plot_dependency_graph()
+plot_dependency_graph_without_command()
 create_thunk_csv()
 
-data_points.sort(key=lambda x: x[0])
+# data_points.sort(key=lambda x: x[0])
 
-T0 = data_points[0][0]
+# T0 = data_points[0][0]
 
-for d in data_points:
-    d[0] = d[0] - T0
-    d.append(sum(d[1:6]))
+# for d in data_points:
+#     d[0] = d[0] - T0
+#     d.append(sum(d[1:6]))
 
 #print", ".join(['"timing_data" using %d t "%s"' % (i+1,x) for x, i in enumerate(headers) ])
 

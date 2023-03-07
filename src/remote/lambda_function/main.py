@@ -36,6 +36,9 @@ def handler(event, context):
     timelog = event.get('timelog')
 
     # Remove old thunk-execute directories
+    os.system("rm -rf '{}'".format(GGPaths.blobs))
+    os.system("rm -rf '{}'".format(GGPaths.reductions))
+    make_gg_dirs()
     os.system("rm -rf /tmp/thunk-execute.*")
 
     # Write thunks to disk
@@ -70,7 +73,6 @@ def handler(event, context):
                 tried_once = True
                 os.system("rm -rf '{}'".format(GGPaths.blobs))
                 os.system("rm -rf '{}'".format(GGPaths.reductions))
-                os.system("rm -rf /tmp/timelog")
                 make_gg_dirs()
                 continue
             else:
