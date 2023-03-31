@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-from re import T
-from socket import TIPC_NODE_SCOPE
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
-import seaborn as sns
 import pandas as pd
 from graphviz import Digraph
 import csv

@@ -234,7 +234,11 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
     if ( download_items.size() > 0 ) {
       timelog->add_point_rw("get_dependencies_num", download_items.size());
       timelog->add_point_size("get_dependencies_size", total_size);
+      auto download_start = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
+      timelog->add_time_point("get_dependencies_start_time", download_start);
       storage_backend->get( download_items );
+      auto download_end = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
+      timelog->add_time_point("get_dependencies_end_time", download_end);
     }else {
       timelog->add_point_rw("get_dependencies_num", 0);
       timelog->add_point_size("get_dependencies_size", 0);
@@ -299,7 +303,11 @@ void upload_output( unique_ptr<StorageBackend> & storage_backend,
     }
     timelog->add_point_rw("upload_output_num", requests.size());
     timelog->add_point_size("upload_output_size", total_size);
+    auto upload_start = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
+    timelog->add_time_point("upload_output_start_time", upload_start);
     storage_backend->put( requests );
+    auto upload_end = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
+    timelog->add_time_point("upload_output_end_time", upload_end);
   }
   catch ( const exception & ex ) {
     throw_with_nested( UploadOutputError {} );

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <string>
 #include <ctime>
+#include <tuple>
 
 class TimeLog
 {
@@ -22,9 +23,10 @@ private:
 public:
   TimeLog();
   void add_point( const std::string & title );
+  void add_time_point( const std::string & title, std::chrono::milliseconds time);
   void add_point_rw( const std::string & title, std::size_t cnt);
   void add_point_size( const std::string & title, off_t size);
-  void add_point_hash( const std::string & title, std::string hash_value, off_t size);
+  void add_point_hash(const std::string & title, std::string hash_value, off_t size);
   void add_execute(std::vector<std::string> &args);
   std::string str() const;
 };

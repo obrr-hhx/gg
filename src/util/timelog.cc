@@ -13,6 +13,7 @@ TimeLog::TimeLog()
 {}
 
 void TimeLog::add_point_hash( const std::string & title, std::string hash_value, off_t size){
+
   if(title == "get_hash")  get_hash.emplace_back(hash_value,size);
   else upload_hash.emplace_back(hash_value,size);
 }
@@ -33,6 +34,11 @@ void TimeLog::add_point( const std::string & title )
 
   points_.emplace_back( title, now - prev_ );
   prev_ = now;
+}
+
+void TimeLog::add_time_point( const std::string & title, std::chrono::milliseconds time)
+{
+  points_.emplace_back( title, time );
 }
 
 void TimeLog::add_execute(std::vector<std::string> &args)
@@ -63,7 +69,7 @@ string TimeLog::str() const
 
   oss << "Get Hash" << endl;
   for(const auto &hash : get_hash) {
-    oss << "get_hash " << hash.first << " " << hash.second << endl;
+    oss << "get_hash " << hash.first << " "  << hash.second << endl;
   }
 
   oss << "Upload Hash" << endl;

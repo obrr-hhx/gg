@@ -4,4 +4,3 @@ cd $DIR/../
 
 rm -rf *.state *.ivf *.y4m *.txt *.mgc .gg
 
-aws s3 rm --recursive $AWS_S3
