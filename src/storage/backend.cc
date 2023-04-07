@@ -10,6 +10,7 @@
 #include "storage/backend_s3.hh"
 #include "storage/backend_gs.hh"
 #include "storage/backend_redis.hh"
+#include "storage/backend_jiffy.hh"
 #include "thunk/ggutils.hh"
 #include "util/digest.hh"
 #include "util/optional.hh"
@@ -33,6 +34,7 @@ unique_ptr<StorageBackend> StorageBackend::create_backend( const string & uri )
   ParsedURI endpoint { uri };
 
   unique_ptr<StorageBackend> backend;
+  std::cout<<"protocol: "<<endpoint.protocol<<std::endl;
 
   if ( endpoint.protocol == "s3" ) {
     backend = make_unique<S3StorageBackend>(
@@ -59,6 +61,13 @@ unique_ptr<StorageBackend> StorageBackend::create_backend( const string & uri )
     config.password = endpoint.password;
 
     backend = make_unique<RedisStorageBackend>( config );
+  }
+  else if( endpoint.protocol == "jiffy" ) {
+    std::cout<<"host is: "<<endpoint.host<<std::endl;
+    std::string host = endpoint.host;
+    int dir_port = 9090;
+    int lease_port = 9091;
+    backend = make_unique<JiffyStorageBackend>( host, dir_port, lease_port );
   }
   else {
     throw runtime_error( "unknown storage backend" );

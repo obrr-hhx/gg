@@ -1,6 +1,7 @@
 
 
 *.a
+!src/storage/lib/*.a
 *.o
 .deps
 Makefile

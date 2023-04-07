@@ -26,21 +26,30 @@ thunk_list = []
 class Thunk:
     def __init__(self) -> None:
         self.hash_value = ''
+        self.write_time_start = []
+        self.write_time_end = []
         self.wrote_time = []
+        self.read_time_start = []
+        self.read_time_end = []
         self.read_time = []
         self.lifetime = 0
         self.size = 0
         self.read_lambda = []
         self.write_lambda = []
     def compute_lifetime(self):
-        tmp_write = self.wrote_time
-        tmp_read = self.read_time
-        tmp_write.sort()
-        tmp_read.sort(reverse=True)
-        if len(tmp_write) == 0:
-            self.lifetime = tmp_read[0]
-        elif len(tmp_read) != 0 and len(tmp_write) != 0:
-            self.lifetime = tmp_read[0] - tmp_write[0]
+        self.write_time_end.sort()
+        self.read_time_start.sort()
+        # thunk life time equals to the last read time - the first write time
+        if self.hash_value == 'V5lALPzBnjYgbF4ZAG.xmDvjWDLCYvvazhD4K45UmzcE00083f1b':
+            print('write start ',self.write_time_start)
+            print('write end ',self.write_time_end)
+            print('read start ',self.read_time_start)
+            print('read end ',self.read_time_end)
+        if len(self.write_time_start) == 0:
+            self.lifetime = self.read_time_end[-1]
+        elif len(self.read_time_start) != 0 and len(self.write_time_start) != 0:
+            self.lifetime = self.read_time_end[-1] - self.write_time_end[0]
+
 
 class Lambda:
     def __init__(self) -> None:
@@ -51,8 +60,12 @@ class Lambda:
         self.get_dependencies_time = 0
         self.execute_time = 0
         self.upload_time = 0
+        self.read_start = 0
+        self.read_end = 0
         self.read_num = 0
         self.read_size = 0
+        self.write_start = 0
+        self.write_end = 0
         self.write_num = 0
         self.write_size = 0
         self.execute = ''
@@ -69,14 +82,15 @@ def check_in_hashList(hash_value):
     return False, None
 
 def compute_lambda_read_time(lambda_entity):
-    # convert the last 5 character of id to int
-    # id_int = int(lambda_entity.id_[-5:])
-    read_time = lambda_entity.id_ + lambda_entity.read_thunk_time + lambda_entity.do_clean_time + lambda_entity.get_dependencies_time
+    time_start = lambda_entity.read_start
+    time_end = lambda_entity.read_end
+    read_time = time_end - time_start
     return read_time
 
 def compute_lambda_write_time(lmbd):
-    # id_int = int(lmbd.id_[-5:])
-    write_time = lmbd.id_ + lmbd.read_thunk_time + lmbd.do_clean_time + lmbd.get_dependencies_time + lmbd.execute_time + lmbd.upload_time
+    time_start = lmbd.write_start
+    time_end = lmbd.write_end
+    write_time = time_end - time_start
     return write_time
 
 def generate_thunk():
@@ -89,10 +103,14 @@ def generate_thunk():
                 thunk = Thunk()
                 thunk.hash_value = h[0]
                 thunk.size = h[1]
+                thunk.read_time_start.append(lmbd.read_start)
+                thunk.read_time_end.append(lmbd.read_end)
                 thunk.read_time.append(compute_lambda_read_time(lmbd))
                 thunk.read_lambda.append(lmbd)
                 thunk_list.append(thunk)
             else:
+                thunk.read_time_start.append(lmbd.read_start)
+                thunk.read_time_end.append(lmbd.read_end)
                 thunk.read_time.append(compute_lambda_read_time(lmbd))
                 thunk.read_lambda.append(lmbd)
         for h in lmbd.write_hash:
@@ -101,12 +119,18 @@ def generate_thunk():
                 thunk = Thunk()
                 thunk.hash_value = h[0]
                 thunk.size = h[1]
+                thunk.write_time_start.append(lmbd.write_start)
+                thunk.write_time_end.append(lmbd.write_end)
                 thunk.wrote_time.append(compute_lambda_write_time(lmbd))
                 thunk.write_lambda.append(lmbd)
                 thunk_list.append(thunk)
             else:
+                thunk.write_time_start.append(lmbd.write_start)
+                thunk.write_time_end.append(lmbd.write_end)
                 thunk.wrote_time.append(compute_lambda_write_time(lmbd))
                 thunk.write_lambda.append(lmbd)
+    for thunk in thunk_list:
+        thunk.compute_lifetime()
 
 
 def create_lambda(timelog):
@@ -141,7 +165,15 @@ def create_lambda(timelog):
             # lmbd.get_thunk.append(log[1])
         elif log[0] == 'upload_hash':
             lmbd.write_hash.append([log[1], log[2]])
-            # lmbd.upload_thunk.append(log[1])       
+            # lmbd.upload_thunk.append(log[1])
+        elif log[0] == 'get_dependencies_start_time':
+            lmbd.read_start = log[1]       
+        elif log[0] == 'get_dependencies_end_time':
+            lmbd.read_end = log[1]
+        elif log[0] == 'upload_output_start_time':
+            lmbd.write_start = log[1]
+        elif log[0] == 'upload_output_end_time':
+            lmbd.write_end = log[1]
     global lambda_list
     lambda_list.append(lmbd)
          
@@ -465,16 +497,13 @@ empty_dir()
 # generate the thunk list
 generate_thunk()
 
-for thunk in thunk_list:
-    thunk.compute_lifetime()
+# create_cdf(myLog)
+# create_runtime_csv()
+# classify_dependency()
 
-create_cdf(myLog)
-create_runtime_csv()
-classify_dependency()
-
-plot_dependency_graph()
-plot_dependency_graph_without_command()
-create_thunk_csv()
+# plot_dependency_graph()
+# plot_dependency_graph_without_command()
+# create_thunk_csv()
 
 # data_points.sort(key=lambda x: x[0])
 
