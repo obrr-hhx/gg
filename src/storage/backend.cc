@@ -64,10 +64,9 @@ unique_ptr<StorageBackend> StorageBackend::create_backend( const string & uri )
   }
   else if( endpoint.protocol == "jiffy" ) {
     std::cout<<"host is: "<<endpoint.host<<std::endl;
-    std::string host = endpoint.host;
-    int dir_port = 9090;
-    int lease_port = 9091;
-    backend = make_unique<JiffyStorageBackend>( host, dir_port, lease_port );
+    JiffyClientConfig config;
+    config.ip = endpoint.host;
+    backend = make_unique<JiffyStorageBackend>( config );
   }
   else {
     throw runtime_error( "unknown storage backend" );

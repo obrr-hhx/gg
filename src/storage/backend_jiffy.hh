@@ -1,23 +1,16 @@
 #ifndef STORAGE_BACKEND_JIFFY_HH
 #define STORAGE_BACKEND_JIFFY_HH
 
-#include "backend.hh"
-#include "net/aws.hh"
-#include "jiffy/client/jiffy_client.h"
-
-using namespace jiffy::client;
-using namespace jiffy::storage;
-using namespace jiffy::directory;
-using namespace jiffy::utils;
+#include "storage/backend.hh"
+#include "net/jiffy.hh"
 
 class JiffyStorageBackend : public StorageBackend
 {
 private:
-    jiffy_client client_;
-    std::shared_ptr<hash_table_client> hash_cli = nullptr;
+    Jiffy client_;
 public:
-    JiffyStorageBackend(const std::string &host, const int dir_port, const int lease_port)
-        : client_(host, dir_port, lease_port)
+    JiffyStorageBackend(JiffyClientConfig &config)
+        : client_(config)
     {}
 
     void put(const std::vector<storage::PutRequest> &requests,
