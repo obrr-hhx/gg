@@ -22,4 +22,4 @@ libggnet_a_SOURCES = address.cc address.hh body_parser.hh \
                      redis.hh redis.cc \
                      gcloud.hh gcloud.cc
 
-LDADD=libjiffy_client.a libthrift.a thriftnb.a
+LDADD=libjiffy_client.a libthrift.a libthriftnb.a
