@@ -38,8 +38,6 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
                          first_file_idx < upload_requests.size();
                          first_file_idx += thread_count * batch_size ) {
 
-                        size_t expected_responses = 0;
-
                         for( size_t file_id = first_file_idx;
                             file_id < min( upload_requests.size(), first_file_idx + thread_count * batch_size );
                             file_id += thread_count ) {
@@ -92,8 +90,6 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
                          first_file_idx < download_requests.size();
                          first_file_idx += thread_count * batch_size ) {
 
-                        size_t expected_responses = 0;
-
                         for( size_t file_id = first_file_idx;
                             file_id < min( download_requests.size(), first_file_idx + thread_count * batch_size );
                             file_id += thread_count ) {
@@ -114,7 +110,7 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
                                 string contents = hash_cli->get(object_key);
                                 roost::atomic_create(contents,filename,
                                                     download_requests.at(file_id).mode.initialized(),
-                                                    download_requests.mode.get_or(0));
+                                                    download_requests.at(file_id).mode.get_or(0));
                                 success_callback(download_requests.at(file_id));
                             }
                         }
