@@ -20,6 +20,7 @@ libggnet_a_SOURCES = address.cc address.hh body_parser.hh \
                      s3.hh s3.cc \
                      lambda.hh lambda.cc \
                      redis.hh redis.cc \
-                     gcloud.hh gcloud.cc
+                     gcloud.hh gcloud.cc \
+                     jiffy.hh jiffy.cc
 
 LDADD=libjiffy_client.a libthrift.a libthriftnb.a
