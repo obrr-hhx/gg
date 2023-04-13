@@ -323,6 +323,7 @@ int main( int argc, char * argv[] )
                         timeout_multiplier, status_bar };
 
     reductor.upload_dependencies();
+    std::cerr << "[reductor] upload sucess" << std::endl;
     // vector<string> reduced_hashes = reductor.reduce();
     vector<string> reduced_hashes;
     auto reduce_time = time_it<std::chrono::milliseconds>(

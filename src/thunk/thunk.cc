@@ -177,7 +177,6 @@ int Thunk::execute() const
   // preparing argv
   vector<string> args = function_.args();
   vector<string> envars { function_.envars() };
-
   auto replace_data_placeholder =
     []( string & str ) -> void
     {
@@ -219,7 +218,9 @@ int Thunk::execute() const
 
     cerr << exec_string;
   }
-
+  cout<<gg::paths::blob( function_.hash() ).string()<<endl;
+  for(auto arg : args) { cout<<"args: "<<endl;cout<<arg<<" "<<endl;}
+  for(auto envar: envars) {cout<<"envars: "<<endl; cout<<envar<<endl; }
   if ( ( retval = ezexec( gg::paths::blob( function_.hash() ).string(),
                           args, envars ) ) < 0 ) {
     throw runtime_error( "execvpe failed" );

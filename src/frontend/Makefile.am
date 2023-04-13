@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(srcdir)/. -I$(builddir)/.. -I$(srcdir)/.. $(CXX14_FLAGS) \
+AM_CPPFLAGS = -g -I$(srcdir)/. -I$(builddir)/.. -I$(srcdir)/.. $(CXX14_FLAGS) \
               $(PROTOBUF_CFLAGS) $(SSL_CFLAGS)
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(EXTRA_CXXFLAGS)
@@ -44,17 +44,17 @@ gg_thunksummary_SOURCES = gg-thunksummary.cc
 gg_thunksummary_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS)
 
 gg_force_and_run_SOURCES = gg-force-and-run.cc
-gg_force_and_run_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS)
+gg_force_and_run_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_execute_SOURCES = gg-execute.cc
-gg_execute_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_execute_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_execute_static_SOURCES = gg-execute.cc
-gg_execute_static_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ldl -lz
-gg_execute_static_LDFLAGS = -static -s -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+gg_execute_static_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ldl -lz -ljiffy_client -lthrift -lthriftnb
+gg_execute_static_LDFLAGS = -static -s -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -g
 
 gg_force_SOURCES = gg-force.cc
-gg_force_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_force_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_mock_SOURCES = gg-mock.cc
 gg_mock_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS)
@@ -81,22 +81,22 @@ gg_s3_download_SOURCES = gg-s3-download.cc
 gg_s3_download_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
 
 gg_put_SOURCES = gg-put.cc
-gg_put_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_put_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_get_SOURCES = gg-get.cc
-gg_get_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_get_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_execute_server_SOURCES = gg-execute-server.cc
-gg_execute_server_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_execute_server_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_meow_worker_SOURCES = gg-meow-worker.cc
-gg_meow_worker_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS)
+gg_meow_worker_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ljiffy_client -lthrift -lthriftnb
 
 gg_repl_SOURCES = gg-repl.cc
 gg_repl_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS)
 
 gg_meow_worker_static_SOURCES = gg-meow-worker.cc
-gg_meow_worker_static_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ldl -lz
+gg_meow_worker_static_LDADD = $(BASE_LDADD) $(CRYPTO_LIBS) $(SSL_LIBS) -ldl -lz -ljiffy_client -lthrift -lthriftnb
 gg_meow_worker_static_LDFLAGS = -static -s -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 
 gg_object_server_SOURCES = gg-object-server.cc

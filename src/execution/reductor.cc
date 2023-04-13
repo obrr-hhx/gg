@@ -387,11 +387,13 @@ void Reductor::upload_dependencies() const
   auto upload_time = time_it<milliseconds>(
     [&upload_requests, this]()
     {
+    	cerr<<"\n[storage backend] upload dependencies"<<endl;
       storage_backend_->put(
         upload_requests,
         [this] ( const storage::PutRequest & upload_request )
         { storage_backend_->set_available( upload_request.object_key );}
       );
+      cerr << "[storage backend] upload sucess" << endl;
     }
   );
 
@@ -429,6 +431,7 @@ void Reductor::download_targets( const vector<string> & hashes ) const
   auto download_time = time_it<milliseconds>(
     [&download_requests, this]()
     {
+    cerr<<"[reductor] download targets "<<endl;
       storage_backend_->get( download_requests );
     }
   );

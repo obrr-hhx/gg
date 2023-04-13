@@ -203,6 +203,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
                          Optional<TimeLog> &timelog )
 {
   try {
+	  cout<<"[fetch dependencies] start" << endl;
     vector<storage::GetRequest> download_items;
     bool executables = false;
     off_t total_size = 0;
@@ -210,6 +211,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
       [&download_items, &executables, &total_size, &timelog]( const Thunk::DataItem & item ) -> void
       {
         const auto target_path = gg::paths::blob( item.first );
+	cout<<item.first<<endl;
 
         if ( not roost::exists( target_path )
              or roost::file_size( target_path ) != gg::hash::size( item.first ) ) {
@@ -236,7 +238,9 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
       timelog->add_point_size("get_dependencies_size", total_size);
       auto download_start = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
       timelog->add_time_point("get_dependencies_start_time", download_start);
+      cout<<"[storage backend] start get"<<endl;
       storage_backend->get( download_items );
+      cout<<"[storage backend] get success"<<endl;
       auto download_end = std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now().time_since_epoch() );
       timelog->add_time_point("get_dependencies_end_time", download_end);
     }else {
@@ -255,6 +259,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
   try {
     vector<storage::GetRequest> download_items;
     bool executables = false;
+    std::cout<<"[fetch dependencies] start"<<std::endl;
 
     auto check_dep =
       [&download_items, &executables]( const Thunk::DataItem & item ) -> void
@@ -280,7 +285,8 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
               check_dep );
 
     if ( download_items.size() > 0 ) {
-      storage_backend->get( download_items );
+		std::cout<<"get the dependencies"<<std::endl;
+      	storage_backend->get( download_items );
     }
   }
   catch ( const exception & ex ) {
@@ -402,6 +408,7 @@ int main( int argc, char * argv[] )
       /* take out an advisory lock on the thunk, in case
          other gg-execute processes are running at the same time */
       const string thunk_path = gg::paths::blob( thunk_hash ).string();
+      cout<<thunk_path<<endl;
       FileDescriptor raw_thunk { CheckSystemCall( "open( " + thunk_path + " )",
                                                   open( thunk_path.c_str(), O_RDONLY ) ) };
       raw_thunk.block_for_exclusive_lock();
@@ -421,17 +428,20 @@ int main( int argc, char * argv[] )
       if ( timelog.initialized() ) { timelog->add_point( "do_cleanup" ); }
 
       if ( get_dependencies ) {
+	      std::cerr<<" start get dependencies " << std::endl;
         if(timelog.initialized()) fetch_dependencies(storage_backend, thunk, timelog);
         else fetch_dependencies( storage_backend, thunk );
       }
 
       if ( timelog.initialized() ) { timelog->add_point( "get_dependencies" ); }
-
+	
+      std::cerr<<" start executing " <<std::endl;
       vector<string> output_hashes = execute_thunk( thunk, timelog );
 
       if ( timelog.initialized() ) { timelog->add_point( "execute" ); }
 
       if ( put_output ) {
+	      std::cerr<<" start uploading"<<std::endl;
         if(timelog.initialized()) upload_output( storage_backend, output_hashes, timelog);
         else upload_output( storage_backend, output_hashes );
       }
