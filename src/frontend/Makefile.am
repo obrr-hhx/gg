@@ -5,15 +5,15 @@ AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(EXTRA_CXXFLAGS)
 
 GG_LDADD = ../execution/libggexecution.a \
            ../storage/libggstorage.a \
-           ../storage/lib/libjiffy_client.a \
-           ../storage/lib/libthrift.a \
-           ../storage/lib/libthriftnb.a \
            ../thunk/libthunk.a \
            ../sandbox/libggsandbox.a \
            ../trace/libggtrace.a \
            ../trace/libggsyscalltable.a \
            ../protobufs/libggprotobufs.a \
            ../net/libggnet.a \
+           ../net/lib/libjiffy_client.a \
+           ../net/lib/libthrift.a \
+           ../net/lib/libthriftnb.a \
            ../tui/libggtui.a \
            ../util/libggutil.a
 
