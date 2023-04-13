@@ -34,8 +34,6 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
                          first_file_idx < upload_requests.size();
                          first_file_idx += thread_count * batch_size ) {
 
-                        size_t expected_responses = 0;
-
                         for( size_t file_id = first_file_idx;
                             file_id < min( upload_requests.size(), first_file_idx + thread_count * batch_size );
                             file_id += thread_count ) {
