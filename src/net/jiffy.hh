@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <functional>
-
+#include <jiffy/client/jiffy_client.h>
 #include "net/requests.hh"
 
 struct JiffyClientConfig
@@ -21,10 +21,10 @@ class Jiffy
 {
 private:
     JiffyClientConfig config_;
-
+    jiffy_client client;
 public:
     Jiffy( const JiffyClientConfig & config )
-        : config_( config )
+        : config_( config ), client( config.ip, config.dir_port, config.lease_port )
     {}
 
     void upload_files( const std::vector<storage::PutRequest> & upload_requests,
