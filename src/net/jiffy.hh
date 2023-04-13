@@ -7,6 +7,11 @@
 #include <jiffy/client/jiffy_client.h>
 #include "net/requests.hh"
 
+using namespace jiffy::client;
+using namespace jiffy::storage;
+using namespace jiffy::directory;
+using namespace jiffy::utils;
+
 struct JiffyClientConfig
 {
     std::string ip { "0.0.0.0" };

@@ -13,10 +13,7 @@
 #include "util/optional.hh"
 
 using namespace std;
-using namespace jiffy::client;
-using namespace jiffy::storage;
-using namespace jiffy::directory;
-using namespace jiffy::utils;
+
 
 #define STORAGE_MODE 0x04 // 0x00 for DRAM_ONLY, 0x04 for MAPPED
 
