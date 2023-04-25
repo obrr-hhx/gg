@@ -26,7 +26,8 @@ int do_fork()
         struct stat my_stat;
         CheckSystemCall( "stat", stat( "/proc/self/task", &my_stat ) );
 
-        if ( my_stat.st_nlink != 3 ) {
+        // because when using jiffy as storage backend, the lease worker thread will exist always
+        if ( my_stat.st_nlink > 4 ) {
             throw runtime_error( "ChildProcess constructed in multi-threaded program" );
         }
     }

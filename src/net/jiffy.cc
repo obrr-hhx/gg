@@ -22,39 +22,38 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
 {
     // const size_t thread_count = config_.max_threads;
     // const size_t batch_size = config_.max_batch_size;
-    string path_prefix = "/jiffy/";
     string back_path = "local://tmp";
+    string tmp_path = "/a/file";
 
-    std::shared_ptr<hash_table_client> hash_cli;
+    shared_ptr<hash_table_client> hash_cli;
+    cout<<"===============================================JIFFY UPLOAD LOG===================================================="<<endl;
     for( size_t file_id = 0; file_id < upload_requests.size(); file_id++ ) {
         const string & filename = upload_requests.at( file_id ).filename.string();
         const string & object_key = upload_requests.at( file_id ).object_key;
-
+        cout<<"[id] "<<file_id<<endl;
         string contents;
         FileDescriptor file {CheckSystemCall("open " + filename, open(filename.c_str(), O_RDONLY))};
         while (not file.eof()) { contents.append(file.read()); }
         file.close();
 
-        if (client.fs()->exists(path_prefix + object_key)) {
-            data_status dstat = client.fs()->dstatus(path_prefix + object_key);
+        if (client.fs()->exists(tmp_path)) {
+            data_status dstat = client.fs()->dstatus(tmp_path);
             std::vector<storage_mode> modes = dstat.mode();
             if (modes[0] == storage_mode::on_disk) {
-                client.load(path_prefix + object_key, back_path);
+                client.load(tmp_path, back_path + tmp_path);
             }
-            hash_cli = client.open_hash_table(path_prefix + object_key); 
+            hash_cli = client.open_hash_table(tmp_path);
         } else {
-            hash_cli = client.create_hash_table(path_prefix + object_key, back_path);
+            hash_cli = client.create_hash_table(tmp_path, back_path + tmp_path, 1, 1, STORAGE_MODE);
         }
-
-        // if(hash_cli->exists(object_key)) {
-        //     hash_cli->update(object_key,contents);
-        // } else {
-        //     hash_cli->put(object_key,contents);
-        // }
+        cout<<"[hash client] start upload file: "<< filename << endl;
         hash_cli->upsert(object_key, contents);
+        cout<<"[hash client] success upload"<<endl;
 
         success_callback( upload_requests.at( file_id ) );
     }
+    cout<<"===================================================================================================================="<<endl;
+    
     // vector<thread> threads;
     // for( size_t thread_index = 0; thread_index < thread_count; thread_index++ ) {
     //     if( thread_index < upload_requests.size() ) {
@@ -106,36 +105,43 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
 {
     // const size_t thread_count = config_.max_threads;
     // const size_t batch_size = config_.max_batch_size;
-    string path_prefix = "/jiffy/";
+
     string back_path = "local://tmp";
-    
-    std::shared_ptr<hash_table_client> hash_cli;
+    string tmp_path = "/a/file";
+    shared_ptr<hash_table_client> hash_cli;
+    cout<<"==========================================JIFFY DOWNLOAD LOG=============================================="<<endl;
     for(size_t file_id = 0; file_id < download_requests.size(); file_id++) {
+        cout<<"[id] "<<file_id<<endl;
         const string & filename = download_requests.at( file_id ).filename.string();
         const string & object_key = download_requests.at( file_id ).object_key;
 
-        if (client.fs()->exists(path_prefix + object_key)) {
-            data_status dstat = client.fs()->dstatus(path_prefix + object_key);
+        if (client.fs()->exists(tmp_path)) {
+            data_status dstat = client.fs()->dstatus(tmp_path);
             std::vector<storage_mode> modes = dstat.mode();
             if (modes[0] == storage_mode::on_disk) {
-                client.load(path_prefix + object_key, back_path);
+                client.load(tmp_path, back_path + tmp_path);
             }
-            hash_cli = client.open_hash_table(path_prefix + object_key); 
+            hash_cli = client.open_hash_table(tmp_path);
         } else {
-            hash_cli = client.create_hash_table(path_prefix + object_key, back_path);
+            hash_cli = client.create_hash_table(tmp_path, back_path + tmp_path, 1, 1, STORAGE_MODE);
         }
 
         if(!hash_cli->exists(object_key)) {
             throw std::runtime_error( object_key + " does not exist");
         }
+        cout<<"[hash client] start download file: "<<filename<<endl;
         string contents = hash_cli->get(object_key);
+        cout<<"[hash client] success download"<<endl;
 
-        roost::atomic_create(contents, filename, 
-                            download_requests.at(file_id).mode.initialized(), 
-                            download_requests.at(file_id).mode.get_or(0));    
+        roost::atomic_create(contents, filename,
+                            download_requests.at(file_id).mode.initialized(),
+                            download_requests.at(file_id).mode.get_or(0));
         success_callback( download_requests.at( file_id ) );
 
     }
+    cout<<"====================================================================================================="<<endl;
+
+    
     // vector<thread> threads;
     // for( size_t thread_index = 0; thread_index < thread_count; thread_index++ ) {
     //     if( thread_index < download_requests.size() ) {
