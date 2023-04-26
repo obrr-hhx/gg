@@ -43,6 +43,11 @@ class lease_renewal_worker {
   void stop();
 
   /**
+   * @brief Cancel renewal worker explicitly
+  */
+  void cancel();
+
+  /**
    * @brief Add file path to to renew list if file path doesn't exist in the list
    * @param path File path
    */
