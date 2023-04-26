@@ -26,7 +26,7 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
     string tmp_path = "/a/file";
 
     shared_ptr<hash_table_client> hash_cli;
-    cout<<"===============================================JIFFY UPLOAD LOG===================================================="<<endl;
+    cout<<"\n===============================================JIFFY UPLOAD LOG===================================================="<<endl;
     for( size_t file_id = 0; file_id < upload_requests.size(); file_id++ ) {
         const string & filename = upload_requests.at( file_id ).filename.string();
         const string & object_key = upload_requests.at( file_id ).object_key;
@@ -47,7 +47,11 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
             hash_cli = client.create_hash_table(tmp_path, back_path + tmp_path, 1, 1, STORAGE_MODE);
         }
         cout<<"[hash client] start upload file: "<< filename << endl;
-        hash_cli->upsert(object_key, contents);
+        if(hash_cli->exists(object_key)){
+            hash_cli->update(object_key, contents);
+        } else {
+            hash_cli->put(object_key, contents);
+        }
         cout<<"[hash client] success upload"<<endl;
 
         success_callback( upload_requests.at( file_id ) );
@@ -109,7 +113,7 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
     string back_path = "local://tmp";
     string tmp_path = "/a/file";
     shared_ptr<hash_table_client> hash_cli;
-    cout<<"==========================================JIFFY DOWNLOAD LOG=============================================="<<endl;
+    cout<<"\n==========================================JIFFY DOWNLOAD LOG=============================================="<<endl;
     for(size_t file_id = 0; file_id < download_requests.size(); file_id++) {
         cout<<"[id] "<<file_id<<endl;
         const string & filename = download_requests.at( file_id ).filename.string();
