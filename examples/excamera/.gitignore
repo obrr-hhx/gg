@@ -7,4 +7,4 @@ Makefile
 *.y4m
 *.txt
 *.mgc
-!/videos
+!./videos/*.avi
