@@ -26,10 +26,9 @@ class Jiffy
 {
 private:
     JiffyClientConfig config_;
-    jiffy_client client;
 public:
     Jiffy( const JiffyClientConfig & config )
-        : config_( config ), client( config.ip, config.dir_port, config.lease_port )
+        : config_( config )
     {}
 
     void upload_files( const std::vector<storage::PutRequest> & upload_requests,

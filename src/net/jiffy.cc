@@ -25,6 +25,7 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
     string back_path = "local://tmp";
     string tmp_path = "/a/file";
 
+    jiffy_client client(config_.ip, config_.dir_port, config_.lease_port);
     shared_ptr<hash_table_client> hash_cli;
     cout<<"\n===============================================JIFFY UPLOAD LOG===================================================="<<endl;
     for( size_t file_id = 0; file_id < upload_requests.size(); file_id++ ) {
@@ -57,7 +58,7 @@ void Jiffy::upload_files( const std::vector<storage::PutRequest> & upload_reques
         success_callback( upload_requests.at( file_id ) );
     }
     cout<<"===================================================================================================================="<<endl;
-    
+    client.lease_worker().cancel();
     // vector<thread> threads;
     // for( size_t thread_index = 0; thread_index < thread_count; thread_index++ ) {
     //     if( thread_index < upload_requests.size() ) {
@@ -112,6 +113,8 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
 
     string back_path = "local://tmp";
     string tmp_path = "/a/file";
+
+    jiffy_client client(config_.ip, config_.dir_port, config_.lease_port);
     shared_ptr<hash_table_client> hash_cli;
     cout<<"\n==========================================JIFFY DOWNLOAD LOG=============================================="<<endl;
     for(size_t file_id = 0; file_id < download_requests.size(); file_id++) {
@@ -136,7 +139,7 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
         cout<<"[hash client] start download file: "<<filename<<endl;
         string contents = hash_cli->get(object_key);
         cout<<"[hash client] success download"<<endl;
-
+        
         roost::atomic_create(contents, filename,
                             download_requests.at(file_id).mode.initialized(),
                             download_requests.at(file_id).mode.get_or(0));
@@ -144,7 +147,7 @@ void Jiffy::download_files( const vector<storage::GetRequest> & download_request
 
     }
     cout<<"====================================================================================================="<<endl;
-
+    client.lease_worker().cancel();
     
     // vector<thread> threads;
     // for( size_t thread_index = 0; thread_index < thread_count; thread_index++ ) {
