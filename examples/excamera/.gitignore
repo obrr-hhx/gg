@@ -4,7 +4,6 @@ excamera-static-bins
 Makefile
 *.state
 *.ivf
-*.avi
 *.y4m
 *.txt
 *.mgc
