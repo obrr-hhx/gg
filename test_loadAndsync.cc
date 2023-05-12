@@ -132,10 +132,10 @@ void test_file(jiffy_client & client, int file_num, int file_size){
 	int keys_num = 240;
 	if(file_num > 0) keys_num = file_num;
 	
-	int MEGABIBYTE = 1024 * 1024;
-	int STRING_SIZE = 1 * MEGABIBYTE;
+	// int MEGABIBYTE = 1024 * 1024;
+	int STRING_SIZE = 1 * 1024 * 1024;
 
-	if(file_size > 0) STRING_SIZE = file_size * MEGABIBYTE;
+	if(file_size > 0) STRING_SIZE = file_size;
 
 	// each file just has one value
 	auto l0 = time_utils::now_ms();
@@ -216,10 +216,17 @@ int main(int args, char* argv[]) {
 	}else if(!strcmp(argv[1],"file")){
 		cout<<"Test file"<<endl;
 		int file_num = atoi(argv[2]);
-		int file_size = atoi(argv[3]);
 		cout<<"file_num: "<<file_num<<endl;
-		cout<<"file_size: "<<file_size<<" MiB"<<endl;
-		test_file(client, file_num, file_size);
+		cout<<"file_size: "<<argv[3]<<endl;
+		string tmp_size(argv[3]);
+		//get the last char to find the unit
+		char unit = tmp_size[tmp_size.size()-1];
+		//get the number
+		int size = atoi(tmp_size.substr(0, tmp_size.size()-1).c_str());
+		if(unit == 'K' || unit == 'k') size *= 1024;
+		else if(unit == 'M' || unit == 'm') size *= 1024*1024;
+		else if(unit == 'G' || unit == 'g') size *= 1024*1024*1024;
+		test_file(client, file_num, size);
 	}
 
 	
