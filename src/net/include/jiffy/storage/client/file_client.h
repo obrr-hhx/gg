@@ -66,6 +66,18 @@ class file_client : public data_structure_client {
 
   void handle_redirect(std::vector<std::string> &_return, const std::vector<std::string> &args) override;
 
+  /**
+   * @brief Set last_offset_ by file size
+   * @param file_size file size
+  */
+  void set_last_offset_by_filesize(std::size_t file_size);
+
+  /**
+   * @brief Get file size
+   * @return Real file size
+  */
+  std::size_t get_file_size();
+
  protected:
 
   /**

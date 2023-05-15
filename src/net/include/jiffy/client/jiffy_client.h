@@ -273,6 +273,13 @@ class jiffy_client {
    */
   void load(const std::string &path, const std::string &dest);
 
+  /**
+   * @brief Put file size in data status's @tags_
+   * @param path File path
+   * @param file_size File size
+  */
+  void set_file_size(const std::string &path, uint64_t file_size);
+
  private:
   /* Directory client */
   std::shared_ptr<directory::directory_client> fs_;
