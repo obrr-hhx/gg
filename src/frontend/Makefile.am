@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(srcdir)/. -I$(builddir)/.. -I$(srcdir)/.. $(CXX14_FLAGS) \
+AM_CPPFLAGS = -I$(srcdir)/. -I$(builddir)/.. -I$(srcdir)/.. -I/usr/local/include/hive $(CXX14_FLAGS) \
               $(PROTOBUF_CFLAGS) $(SSL_CFLAGS)
 
 AM_CXXFLAGS = $(PICKY_CXXFLAGS) $(EXTRA_CXXFLAGS)
@@ -14,7 +14,9 @@ GG_LDADD = ../execution/libggexecution.a \
            ../tui/libggtui.a \
            ../util/libggutil.a
 
-BASE_LDADD = $(GG_LDADD) $(PROTOBUF_LIBS) $(HIREDIS_LIBS)
+HIVE_LDADD = /usr/local/lib/libhiveclient_static.a /usr/local/lib/libhive_static.a /usr/local/lib/libthrift.a /usr/local/lib/libthriftnb.a
+
+BASE_LDADD = $(GG_LDADD) $(PROTOBUF_LIBS) $(HIREDIS_LIBS) $(HIVE_LDADD)
 
 bin_PROGRAMS = gg gg-trace gg-describe gg-force-and-run gg-force gg-mock \
                gg-execute gg-infer gg-thunksummary gg-s3-upload \

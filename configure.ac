@@ -14,8 +14,9 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 
 # Add picky CXXFLAGS
-CXX14_FLAGS="-std=c++14 -pthread"
-PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Weffc++ -Werror"
+CXX14_FLAGS="-std=c++17 -pthread -DENABLE_CACHE_CLIENT"
+# PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Weffc++ -Werror"
+PICKY_CXXFLAGS="-pedantic -Wall -Wextra -Weffc++"
 AC_SUBST([CXX14_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 AC_LANG_PUSH(C++)

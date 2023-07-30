@@ -11,6 +11,7 @@
 #include "execution/response.hh"
 #include "net/requests.hh"
 #include "storage/backend.hh"
+#include "storage/backend_hive.hh"
 #include "thunk/ggutils.hh"
 #include "thunk/factory.hh"
 #include "thunk/thunk_reader.hh"
@@ -28,6 +29,7 @@
 using namespace std;
 using namespace gg;
 using namespace gg::thunk;
+using namespace std::chrono;
 using ReductionResult = gg::cache::ReductionResult;
 
 const bool sandboxed = ( getenv( "GG_SANDBOXED" ) != NULL );
@@ -206,14 +208,19 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
       {
         const auto target_path = gg::paths::blob( item.first );
 
-        if ( not roost::exists( target_path )
-             or roost::file_size( target_path ) != gg::hash::size( item.first ) ) {
-          if ( executables ) {
-            download_items.push_back( { item.first, target_path, 0544 } );
-          }
-          else {
-            download_items.push_back( { item.first, target_path, 0444 } );
-          }
+        // if ( not roost::exists( target_path )
+        //      or roost::file_size( target_path ) != gg::hash::size( item.first ) ) {
+        //   if ( executables ) {
+        //     download_items.push_back( { item.first, target_path, 0544 } );
+        //   }
+        //   else {
+        //     download_items.push_back( { item.first, target_path, 0444 } );
+        //   }
+        // }
+        if(executables){
+          download_items.push_back( { item.first, target_path, 0544 } );
+        }else {
+          download_items.push_back( { item.first, target_path, 0444 } );
         }
       };
 
@@ -225,7 +232,16 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
               check_dep );
 
     if ( download_items.size() > 0 ) {
-      storage_backend->get( download_items );
+      // storage_backend->get( download_items );
+      // chech the storage_backend type if equal to hivestoragebackend
+      
+      if(typeid(storage_backend) == typeid(HiveStorageBackend)){
+        // transform the storage_backend to HiveStorageBackend
+        HiveStorageBackend * hive_storage_backend = dynamic_cast<HiveStorageBackend*>(storage_backend.get());
+        hive_storage_backend->hive_get("", thunk.hash(), download_items);
+      }else {
+        storage_backend->get( download_items );
+      }
     }
   }
   catch ( const exception & ex ) {
@@ -234,7 +250,7 @@ void fetch_dependencies( unique_ptr<StorageBackend> & storage_backend,
 }
 
 void upload_output( unique_ptr<StorageBackend> & storage_backend,
-                    const vector<string> & output_hashes )
+                    const vector<string> & output_hashes, const Thunk & thunk)
 {
   try {
     vector<storage::PutRequest> requests;
@@ -242,7 +258,14 @@ void upload_output( unique_ptr<StorageBackend> & storage_backend,
       requests.push_back( { gg::paths::blob( output_hash ), output_hash,
                             gg::hash::to_hex( output_hash ) } );
     }
-    storage_backend->put( requests );
+    // storage_backend->put( requests );
+    if(typeid(storage_backend) == typeid(HiveStorageBackend)){
+      // transform the storage_backend to HiveStorageBackend
+      HiveStorageBackend * hive_storage_backend = dynamic_cast<HiveStorageBackend*>(storage_backend.get());
+      hive_storage_backend->hive_put("", thunk.hash(), requests);
+    }else {
+      storage_backend->put( requests );
+    }
   }
   catch ( const exception & ex ) {
     throw_with_nested( UploadOutputError {} );
@@ -257,7 +280,7 @@ void usage( const char * argv0 )
   << " -g, --get-dependencies  Fetch the missing dependencies from the remote storage" << endl
   << " -p, --put-output        Upload the output to the remote storage" << endl
   << " -C, --cleanup           Remove unnecessary blobs in .gg dir" << endl
-  << " -T, --timelog           Produce timing log for this execution" << endl
+  // << " -T, --timelog=[id]           Produce timing log for this execution" << endl
   << endl;
 }
 
@@ -278,17 +301,20 @@ int main( int argc, char * argv[] )
     bool cleanup = false;
     Optional<TimeLog> timelog;
     unique_ptr<StorageBackend> storage_backend;
+    // string aws_request_id;
 
     const option command_line_options[] = {
       { "get-dependencies", no_argument, nullptr, 'g' },
       { "put-output",       no_argument, nullptr, 'p' },
       { "cleanup",          no_argument, nullptr, 'C' },
       { "timelog",          no_argument, nullptr, 'T' },
+      // { "request-id",       required_argument, nullptr, 'R' },
       { nullptr, 0, nullptr, 0 },
     };
 
     while ( true ) {
       const int opt = getopt_long( argc, argv, "gpCT", command_line_options, nullptr );
+      // const int opt = getopt_long( argc, argv, "gpCTR", command_line_options, nullptr );
 
       if ( opt == -1 ) {
         break;
@@ -299,6 +325,7 @@ int main( int argc, char * argv[] )
       case 'p': put_output = true; break;
       case 'C': cleanup = true; break;
       case 'T': timelog.reset(); break;
+      // case 'R': aws_request_id = optarg; break;
 
       default:
         throw runtime_error( "invalid option: " + string { argv[ optind - 1 ] } );
@@ -344,17 +371,42 @@ int main( int argc, char * argv[] )
         fetch_dependencies( storage_backend, thunk );
       }
 
-      if ( timelog.initialized() ) { timelog->add_point( "get_dependencies" ); }
-
-      vector<string> output_hashes = execute_thunk( thunk );
-
-      if ( timelog.initialized() ) { timelog->add_point( "execute" ); }
-
-      if ( put_output ) {
-        upload_output( storage_backend, output_hashes );
+      if ( timelog.initialized() ) { 
+        auto now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+        string now_str = to_string(now.count());
+        timelog->add_point( "get_dependencies" ); 
+        for_each(thunk.values().cbegin(), thunk.values().cend(),
+                  [&timelog, now_str](const auto &item) {
+                    timelog->add_get(item.first, gg::hash::size(item.first), now_str);
+                  });
+        for_each(thunk.executables().cbegin(), thunk.executables().cend(),
+                  [&timelog, now_str](const auto &item) {
+                    timelog->add_get(item.first, gg::hash::size(item.first), now_str);
+                  });  
       }
 
-      if ( timelog.initialized() ) { timelog->add_point( "upload_output" ); }
+      vector<string> output_hashes = execute_thunk( thunk );
+      
+      if ( timelog.initialized() ) { 
+        timelog->add_point( "execute" ); 
+        for(auto command : thunk.function().args()) {
+          timelog->add_command(command);
+        }
+      }
+
+      if ( put_output ) {
+        upload_output( storage_backend, output_hashes, thunk );
+      }
+
+      if ( timelog.initialized() ) { 
+        auto now = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+        string now_str = to_string(now.count());
+        timelog->add_point( "upload_output" ); 
+        for_each(output_hashes.cbegin(), output_hashes.cend(),
+                  [&timelog, now_str](const auto &item) {
+                    timelog->add_put(item, gg::hash::size(item), now_str);
+                  });
+      }
 
       if ( timelog.initialized() and storage_backend != nullptr ) {
         TempFile tmplog { "/tmp/timelog" };
@@ -362,7 +414,11 @@ int main( int argc, char * argv[] )
         tmplog.fd().close();
 
         vector<storage::PutRequest> requests;
-        requests.emplace_back( tmplog.name(), "timelog/" + thunk_hash );
+        // auto now = duration_cast<milliseconds>( system_clock::now().time_since_epoch() );
+        auto nanos = duration_cast<nanoseconds>( system_clock::now().time_since_epoch() );
+        string sufix = to_string( nanos.count() );
+        // requests.emplace_back( tmplog.name(), "timelog/" + thunk_hash + "_" + sufix);
+        requests.emplace_back( tmplog.name(), "timelog/" + thunk_hash);
         storage_backend->put( requests );
       }
       else if ( timelog.initialized() ) {

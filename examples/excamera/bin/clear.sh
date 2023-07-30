@@ -2,4 +2,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $DIR/../
 
-rm -rf *.state *.ivf *.y4m *.txt *.mgc .gg
+rm -rf ~/.cache/gg/remotes
+
+rm -rf *.state *.ivf *.txt *.mgc .gg *.y4m

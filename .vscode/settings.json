@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.cpp": "cpp",
+        "*.tcc": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc"
+}

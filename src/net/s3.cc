@@ -6,6 +6,7 @@
 #include <thread>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <chrono>
 
 #include "socket.hh"
 #include "secure_socket.hh"
@@ -17,6 +18,7 @@
 
 using namespace std;
 using namespace storage;
+using namespace std::chrono;
 
 const static std::string UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
@@ -219,7 +221,7 @@ void S3Client::download_files( const std::string & bucket,
                   file_id < min( download_requests.size(), first_file_idx + thread_count * batch_size );
                   file_id += thread_count ) {
               const string & object_key = download_requests.at( file_id ).object_key;
-
+              
               S3GetRequest request { credentials_, endpoint, config_.region, object_key };
 
               HTTPRequest outgoing_request = request.to_http_request();

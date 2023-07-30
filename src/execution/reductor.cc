@@ -408,10 +408,12 @@ void Reductor::download_targets( const vector<string> & hashes ) const
   size_t total_size = 0;
 
   for ( const string & hash : hashes ) {
-    if ( not roost::exists( gg::paths::blob( hash ) ) ) {
-      download_requests.push_back( { hash, gg::paths::blob( hash ) } );
-      total_size += gg::hash::size( hash );
-    }
+    // if ( not roost::exists( gg::paths::blob( hash ) ) ) {
+    //   download_requests.push_back( { hash, gg::paths::blob( hash ) } );
+    //   total_size += gg::hash::size( hash );
+    // }
+    download_requests.push_back( { hash, gg::paths::blob( hash ) } );
+    total_size += gg::hash::size( hash );
   }
 
   if ( download_requests.size() == 0 ) {

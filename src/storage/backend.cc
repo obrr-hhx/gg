@@ -10,6 +10,7 @@
 #include "storage/backend_s3.hh"
 #include "storage/backend_gs.hh"
 #include "storage/backend_redis.hh"
+#include "storage/backend_hive.hh"
 #include "thunk/ggutils.hh"
 #include "util/digest.hh"
 #include "util/optional.hh"
@@ -55,10 +56,25 @@ unique_ptr<StorageBackend> StorageBackend::create_backend( const string & uri )
     RedisClientConfig config;
     config.ip = endpoint.host;
     config.port = endpoint.port.get_or( config.port );
-    config.username = endpoint.username;
-    config.password = endpoint.password;
+    if (endpoint.username == "no_username") {
+      config.username = "";
+    } else {
+      config.username = endpoint.username;
+    }
+    if (endpoint.password == "no_password") {
+      config.password = "";
+    } else {
+      config.password = endpoint.password;
+    }
 
     backend = make_unique<RedisStorageBackend>( config );
+  }
+  else if ( endpoint.protocol == "hive") {
+    HiveClientConfig config;
+    config.ip = endpoint.host;
+    config.port = endpoint.port.get_or( config.port );
+
+    backend = make_unique<HiveStorageBackend>( config );
   }
   else {
     throw runtime_error( "unknown storage backend" );

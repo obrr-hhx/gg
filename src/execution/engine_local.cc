@@ -39,7 +39,7 @@ void LocalExecutionEngine::force_thunk( const Thunk & thunk,
       vector<string> command;
 
       if ( mixed ) {
-          command = { "gg-execute", "--get-dependencies", "--put-output",
+          command = { "gg-execute", "--get-dependencies", "--put-output", "--timelog",
                       thunk.hash() };
       }
       else {

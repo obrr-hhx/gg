@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3.7
 
 import os
 import sys
@@ -20,6 +20,9 @@ if not os.environ.get('GG_DIR'):
 if not os.environ.get('GG_CACHE_DIR'):
     os.environ['GG_CACHE_DIR'] = "/tmp/_gg/_cache"
 
+# if not os.environ.get('GG_VERBOSE'):
+#     os.environ['GG_VERBOSE'] = "1"
+
 # Now we can import gg stuff...
 from ggpaths import GGPaths, GGCache, make_gg_dirs
 from common import is_executable, make_executable, run_command
@@ -31,6 +34,7 @@ def handler(event, context):
     os.environ['GG_STORAGE_URI'] = event['storageBackend']
     thunks = event['thunks']
     timelog = event.get('timelog')
+    # request_id = context.aws_request_id
 
     # Remove old thunk-execute directories
     os.system("rm -rf /tmp/thunk-execute.*")
@@ -80,7 +84,9 @@ def handler(event, context):
 
     if timelog:
         command += ["--timelog"]
-
+    # if request_id:
+    #     command += ["--request-id", request_id]
+        
     return_code, stdout = run_command(command +
          [x['hash'] for x in thunks])
 

@@ -13,6 +13,7 @@
 #include "net/s3.hh"
 #include "storage/backend_local.hh"
 #include "storage/backend_s3.hh"
+#include "storage/backend_hive.hh"
 #include "thunk/ggutils.hh"
 #include "thunk/placeholder.hh"
 #include "thunk/thunk_reader.hh"
@@ -30,6 +31,8 @@
 #include "util/path.hh"
 #include "util/timeit.hh"
 #include "util/util.hh"
+
+#include "workflow/workflow_management_client.h"
 
 using namespace std;
 using namespace gg::thunk;
@@ -314,6 +317,16 @@ int main( int argc, char * argv[] )
       storage_backend = StorageBackend::create_backend( gg::remote::storage_backend_uri() );
     }
 
+    
+    std::unique_ptr<hive::workflow::workflow_management_client> hive_workflow_client;
+    std::string workflowName = safe_getenv("HIVE_WORKFLOW_NAME");
+    if (typeid(storage_backend) == typeid(HiveStorageBackend)) {
+      HiveStorageBackend* hive_storage_backend = dynamic_cast<HiveStorageBackend*>(storage_backend.get());
+      hive_workflow_client = std::make_unique<hive::workflow::workflow_management_client>(hive_storage_backend->get_host(), hive_storage_backend->get_port());
+      hive_workflow_client->workflow_register(workflowName);
+    }
+    
+
     Reductor reductor { target_hashes,
                         move( execution_engines ),
                         move( fallback_engines ),
@@ -322,7 +335,12 @@ int main( int argc, char * argv[] )
                         timeout_multiplier, status_bar };
 
     reductor.upload_dependencies();
-    vector<string> reduced_hashes = reductor.reduce();
+    // vector<string> reduced_hashes = reductor.reduce();
+    vector<string> reduced_hashes;
+    auto reduce_time = time_it<std::chrono::milliseconds>( [&] () {
+      reduced_hashes = reductor.reduce();
+    } );
+    cerr<<"reduce time: "<<reduce_time.count()<<" ms"<<endl;
     if ( not no_download and not reduced_hashes.empty() ) {
       reductor.download_targets( reduced_hashes );
 
@@ -332,6 +350,10 @@ int main( int argc, char * argv[] )
         /* HACK this is a just a dirty hack... it's not always right */
         roost::make_executable( actual_targets[ i ] );
       }
+    }
+
+    if(typeid(storage_backend) == typeid(HiveStorageBackend)) {
+      hive_workflow_client->workflow_deregister(workflowName);
     }
 
     return EXIT_SUCCESS;
